@@ -1,0 +1,633 @@
+<title>브레인 크로스트레이닝</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<style>
+/* Layout: 좌측 챕터 내비게이션 + 본문(원리 → 활동 → 함께 보는 결과). 모바일에서는 내비가 가로 스트립으로 접힌다. */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --ink:#16212c; --muted:#5b6874; --line:#dde3ea; --soft:#eaeff5;
+  --grp:#2a78d6; --me:#eb6834; --good:#1a7f4b; --warn:#b36b00;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
+  --font-body:"Noto Sans KR",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-display:"Noto Serif KR","Noto Sans KR",Georgia,serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11171d; --surface:#192129; --ink:#e8edf2; --muted:#9aa8b4; --line:#2b3641; --soft:#222c36;
+  --grp:#3987e5; --me:#f0814f; --good:#4cc38a; --warn:#e0a040;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11171d; --surface:#192129; --ink:#e8edf2; --muted:#9aa8b4; --line:#2b3641; --soft:#222c36;
+  --grp:#3987e5; --me:#f0814f; --good:#4cc38a; --warn:#e0a040;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance;line-height:1.3}
+p{margin:0}
+.wrap{max-width:1180px;margin:0 auto}
+header.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding:18px 0 14px;border-bottom:1px solid var(--line)}
+.brand{display:flex;flex-direction:column}
+.brand b{font-family:var(--font-display);font-size:20px;letter-spacing:-.01em}
+.brand span{font-size:12px;color:var(--muted)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tools input[type=text],.tools select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0;width:130px;font-size:13px}
+.tools select{width:auto;max-width:160px}
+.live{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 var(--good);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 55%,transparent)}70%,100%{box-shadow:0 0 0 8px transparent}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}*{transition:none!important}}
+.demo{font-size:12px;display:inline-flex;gap:6px;align-items:center;color:var(--muted)}
+.banner{margin:12px 0 0;padding:9px 14px;border-radius:8px;background:color-mix(in srgb,var(--warn) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 40%,var(--line));font-size:13px}
+.shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:32px;padding-top:22px}
+nav.chs{position:sticky;top:16px;align-self:start;display:flex;flex-direction:column;gap:2px;max-height:calc(100vh - 32px);overflow:auto}
+nav.chs button{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;text-align:left;background:none;border:0;border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--muted);font-size:14px}
+nav.chs button:hover{background:var(--soft)}
+nav.chs button[aria-current="true"]{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:inset 3px 0 0 var(--me),0 0 0 1px var(--line)}
+nav.chs .no{font-variant-numeric:tabular-nums;font-size:12px;color:var(--muted)}
+nav.chs .ck{font-size:12px;color:var(--good);font-weight:700}
+nav.chs .n{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.sep{height:1px;background:var(--line);margin:6px 8px}
+main{min-width:0;display:flex;flex-direction:column;gap:22px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.chead h2{font-size:28px;margin-top:4px}
+.chead .en{font-size:13px;color:var(--muted);margin-top:2px}
+.chead .principle{margin-top:12px;font-family:var(--font-display);font-size:17px;max-width:62ch}
+.sum{max-width:66ch;color:var(--ink)}
+.sum ul{margin:8px 0 0;padding-left:18px;color:var(--muted)}
+.hr{font-size:13px;color:var(--muted);margin-top:8px;max-width:66ch}
+.hr b{color:var(--ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+.card h3{font-size:17px}
+.card .sub{font-size:13px;color:var(--muted);margin-top:2px}
+.act h3{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.badge{font-family:var(--font-body);font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--muted)}
+.badge.ok{background:color-mix(in srgb,var(--good) 16%,var(--surface));color:var(--good)}
+.q{padding:12px 0;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0}
+.q p{margin-bottom:8px;font-size:14.5px}
+.scale,.opts{display:flex;flex-wrap:wrap;gap:6px}
+.scale label,.opts label{position:relative}
+.scale input,.opts input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0}
+.scale span,.opts span{display:inline-flex;justify-content:center;align-items:center;min-width:42px;height:38px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);cursor:pointer;font-size:14px;font-variant-numeric:tabular-nums}
+.opts span{height:auto;min-height:38px;padding:6px 12px;text-align:left}
+.scale input:checked+span,.opts input:checked+span{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.scale input:focus-visible+span,.opts input:focus-visible+span,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--grp);outline-offset:2px}
+.lg{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);max-width:340px;margin:2px 0 6px}
+.ab{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ab .opts span{width:100%}
+.ab .opts{display:block}
+.ab .opts label{display:block}
+.field{display:flex;flex-direction:column;gap:5px;margin-top:12px}
+.field label,.field .lab{font-size:13px;font-weight:700}
+.field input[type=text],.field textarea,.field select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+.rng{display:grid;grid-template-columns:1fr 34px;gap:10px;align-items:center}
+.rng output{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+input[type=range]{width:100%;accent-color:var(--me)}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer}
+.btn.alt{background:var(--soft);color:var(--ink);border:1px solid var(--line)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px}
+.msg{font-size:13px;color:var(--muted);min-height:20px}
+.msg.err{color:var(--s8)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.stat b{display:block;font-family:var(--font-display);font-size:26px;line-height:1.2;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.chart{margin-top:12px;overflow-x:auto}
+.chart svg{display:block;width:100%;height:auto;min-width:340px}
+svg text{font-family:var(--font-body);font-size:13.5px;fill:var(--muted)}
+svg .v{fill:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+svg .st{font-size:12px}
+svg .w{fill:#fff;font-weight:700}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.legend i.d{transform:rotate(45deg);border-radius:1px}
+details.tb{margin-top:10px;font-size:12.5px}
+details.tb summary{cursor:pointer;color:var(--muted)}
+.tw{overflow-x:auto;margin-top:6px}
+table{border-collapse:collapse;font-variant-numeric:tabular-nums}
+td,th{border-bottom:1px solid var(--line);padding:4px 10px;text-align:left;white-space:nowrap}
+.wall{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.note{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:14px}
+.note small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+.note.mine{border-color:var(--me)}
+.chip{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--soft);color:var(--muted);margin-right:6px}
+.pacer{display:grid;place-items:center;min-height:210px;border-radius:12px;background:var(--bg);border:1px dashed var(--line);margin-top:12px;text-align:center;padding:16px}
+.pacer .ball{width:84px;height:84px;border-radius:50%;background:color-mix(in srgb,var(--s3) 40%,var(--bg));border:2px solid var(--s3);transition:transform 4s ease-in-out}
+.pacer .big{font-family:var(--font-display);font-size:22px;margin-top:10px}
+.pacer .small{font-size:13px;color:var(--muted)}
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:5px 9px;border-radius:6px;max-width:260px;opacity:0;transition:opacity .08s}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:700;font-size:14px;z-index:60}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
+.how div{padding:14px;border:1px solid var(--line);border-radius:10px;font-size:13.5px;color:var(--muted)}
+.how b{display:block;color:var(--ink);margin-bottom:2px;font-size:14px}
+.mx{overflow-x:auto}
+@media (max-width:860px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:14px}
+  nav.chs{position:static;flex-direction:row;overflow-x:auto;max-height:none;padding-bottom:6px;gap:6px}
+  nav.chs button{display:flex;flex:none;gap:6px;border:1px solid var(--line);background:var(--surface);white-space:nowrap}
+  nav.chs .sep{display:none}
+  nav.chs .n{display:none}
+  .ab{grid-template-columns:1fr}
+  .chead h2{font-size:24px}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>브레인 크로스트레이닝</b><span>HR 성인 뇌훈련 프로그램 · 함께 참여하고 함께 보는 결과</span></div>
+    <div class="tools">
+      <span class="live" id="live"><span class="dot"></span><span id="liveTxt">연결 중</span></span>
+      <input id="nick" type="text" maxlength="12" placeholder="닉네임" aria-label="닉네임">
+      <input id="grp" type="text" maxlength="12" placeholder="그룹 코드" aria-label="그룹 코드">
+      <select id="flt" aria-label="보기 범위"><option value="">전체 참가자</option></select>
+      <label class="demo"><input type="checkbox" id="demoCk"> 예시 데이터</label>
+    </div>
+  </header>
+  <div id="banner"></div>
+  <div class="shell">
+    <nav class="chs" id="nav" aria-label="챕터"></nav>
+    <main id="main"></main>
+  </div>
+</div>
+<div id="tip" role="tooltip"></div>
+<div id="toastBox"></div>
+
+<script>
+/* ---------- 기본 유틸 ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const f1=n=>(Math.round(n*10)/10).toFixed(1);
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const hash=s=>{let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return (h>>>0)/4294967296};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+/* ---------- 상태 ---------- */
+let db=null,uid=null,others=[],loaded=false,dbError='';
+let me={nick:store.get('bl_nick')||'',group:store.get('bl_grp')||'',d:{},u:0};
+let demoManual=null,filterGroup='',tab=location.hash.replace('#','')||'home';
+const useDemo=()=>demoManual!==null?demoManual:others.filter(o=>o.id!==uid&&o.d&&Object.keys(o.d).length).length===0;
+
+/* ---------- 교재 기반 상수 ---------- */
+const EVENTS=['상사의 갑작스러운 피드백','마감 일정 변경','회의 중 내 의견에 반박','성과 평가 결과 통보','동료의 업무 누락','조직 개편 공지'];
+const EMOS=['불안','분노','실망','기대','안도','무덤덤'];
+const ACTS=['사실부터 확인한다','잠시 쉬고 온다','상대와 직접 대화한다','기록하고 내일 결정한다'];
+const BLOCKERS=['평가받는 것에 대한 두려움','규칙·절차가 우선인 분위기','시간 압박','실패에 대한 불이익','과거 방식 답습','상사·위계에 대한 눈치','정답 중심의 학습 습관','회의에서 튀기 싫은 마음'];
+const SITS=['발표·보고','평가 면담','새 프로젝트','갈등 대화','변화 통보'];
+const STYLES=['시각형','청각형','체감형'];
+const MI=['언어','논리수학','시각공간','신체운동','음악','대인관계','자기이해','자연탐구'];
+const PERSP=['고객','신입사원','경영진','10년 후의 나','전혀 다른 업종'];
+const AREAS=['업무','건강','가족','성장','관계','휴식'];
+const TRAITS=['경험에 대한 개방성','스스로 평가하는 힘','개념을 갖고 노는 힘','심리적 안전','심리적 자유'];
+
+const Q4=[['구체적이고 상세한 지시가 편하다','큰 방향만 주어지는 편이 편하다'],['자료를 분석한 뒤 결정한다','직감을 함께 참고해 결정한다'],['미리 계획표를 짜 둔다','흐름에 맞춰 그때그때 조정한다'],['새 도구는 설명서부터 읽는다','일단 만져 보며 익힌다'],['회의 메모는 번호와 개조식','회의 메모는 그림·화살표·낙서'],['사람은 이름이 먼저 기억난다','사람은 얼굴과 분위기가 먼저 기억난다'],['조건을 정리한 뒤 발상한다','연상과 비유로 먼저 발상한다'],['쉴 때는 퍼즐·계산이 즐겁다','쉴 때는 음악·그림이 즐겁다'],['선택할 때 비교표를 만든다','선택할 때 끌리는 쪽을 고른다'],['문제는 단계별로 푼다','문제는 전체 그림을 먼저 본다']];
+const Q6=[['도표나 그림이 있어야 설명이 잘 이해된다',0],['길을 찾을 때 지도를 보는 편이 편하다',0],['메모에 도형·밑줄·색을 자주 쓴다',0],['사람의 표정이나 옷차림 변화를 잘 알아챈다',0],['듣는 것보다 읽는 것이 오래 남는다',0],
+ ['설명은 말로 들을 때 더 잘 이해된다',1],['소리 내어 읽거나 혼잣말로 정리한다',1],['주변 소음이 작업에 신경 쓰인다',1],['메시지보다 통화가 편하다',1],['노래 가사나 멜로디를 쉽게 기억한다',1],
+ ['직접 해 보며 배울 때 가장 빠르다',2],['오래 앉아 있기 힘들어 움직이며 생각한다',2],['말할 때 손짓이 많다',2],['걸으며 생각하면 정리가 잘 된다',2],['만들기·조립 같은 손작업이 편하다',2]];
+const Q7=['글이나 말로 생각을 정확히 전달하는 편이다','단어·비유·이야기 만들기를 즐긴다','숫자와 데이터로 따져 보는 것이 즐겁다','논리의 빈틈을 금방 찾는다','머릿속에서 도면이나 배치를 그려 본다','도식과 그림으로 설명하는 편이 쉽다','몸을 움직일 때 생각이 잘 풀린다','손으로 만들고 고치는 일에 자신 있다','리듬과 음의 변화에 민감하다','음악이 집중에 큰 영향을 준다','사람들의 기분과 분위기를 빨리 읽는다','갈등 조율이나 팀 맞추기가 자연스럽다','내 강점·약점과 감정을 비교적 정확히 안다','혼자 돌아보는 시간이 꼭 필요하다','패턴과 분류, 변화 관찰에 흥미가 있다','자연이나 야외에서 에너지를 얻는다'];
+const Q1=['새로운 방법이 떠오르면 일단 시도해 본다','정답이 하나가 아닌 문제를 좋아한다','업무 중 “왜 이렇게 하지?”를 자주 묻는다','실수는 배운 점으로 받아들인다','다른 분야의 아이디어를 내 일에 가져온다'];
+const Q12=['새로운 방식과 낯선 경험을 환영하는 팀이다','일의 결과를 외부 평가보다 스스로 판단할 수 있다','아이디어를 자유롭게 섞고 시험해 볼 여유가 있다','틀린 의견을 말해도 불이익이 없다','정해진 틀을 벗어난 시도가 허용된다'];
+
+/* ---------- 챕터 정의 ---------- */
+const CH=[
+{k:'c1',no:1,title:'창의성은 타고나지만 쓰지 않으면 줄어든다',short:'타고난 창의성',en:'Born creative',page:1,
+ principle:'우리는 모두 창의적으로 태어나지만 살면서 그 힘을 잃어 갑니다.',
+ sum:'창의성은 새롭고 쓸모 있는 것을 만들어 내는 힘입니다. 특별한 사람의 재능이 아니라 쓰면 자라고 안 쓰면 줄어드는 능력입니다.',
+ bul:['지금의 사고 패턴을 알아차린다','새로운 방식을 반복해서 연습한다'],hr:'조직의 문제 해결력과 혁신 문화를 진단하는 출발점으로 쓰기 좋습니다.'},
+{k:'c2',no:2,title:'환경이 만든 제약',short:'환경의 제약',en:'Environmental limits',page:15,
+ principle:'우리는 환경이 만든 한계 안에서 창의성을 눌러 왔습니다.',
+ sum:'학교, 조직, 문화 속에서 정답 찾기와 순응이 보상받으면서 우리는 새로운 시도를 줄이도록 배웠습니다. 먼저 내 사고를 붙잡는 습관을 찾아내고, 두려워도 새 방식을 하나 시도해 봅니다.',
+ bul:['나를 막는 요인을 확인한다','작은 실험 하나를 정한다'],hr:'팀의 심리적 제약 요인을 익명으로 모아 개선 우선순위를 정할 수 있습니다.'},
+{k:'c3',no:3,title:'기대가 경험을 만든다',short:'기대와 경험',en:'Expectations',page:33,
+ principle:'우리가 사는 삶은 우리가 만든 삶이며, 우리는 기대한 대로 경험합니다.',
+ sum:'기대는 사건에 대한 반응을 물들입니다. 관점을 바꾸고 긍정적 기대를 만들며 장면을 시각화하고 확언을 쓰면 같은 일이 다른 경험이 됩니다.',
+ bul:['상황에 대한 내 기대를 숫자로 본다','긍정적으로 다시 쓴 뒤 달라지는지 확인한다'],hr:'면담·발표·변화 통보처럼 부담스러운 업무 상황의 사전 코칭에 적용합니다.'},
+{k:'c4',no:4,title:'양쪽 뇌를 함께 쓰기',short:'전뇌 사고',en:'Whole-brain thinking',page:53,
+ principle:'우리는 양쪽 뇌를 함께 쓸 때 가장 잘 기능합니다.',
+ sum:'분석·순서·언어는 좌반구, 직관·이미지·전체상은 우반구와 흔히 연결됩니다. 대부분은 한쪽에 치우쳐 있어서 덜 쓰는 쪽을 의도적으로 쓰는 연습이 필요합니다.',
+ bul:['내 사고 성향의 위치를 확인한다','덜 쓰는 쪽의 활동을 일부러 해 본다'],hr:'팀 구성원의 사고 성향 분포를 보고 역할과 회의 방식을 설계합니다.'},
+{k:'c5',no:5,title:'사건과 감정을 분리하기',short:'사건과 감정',en:'Events vs. feelings',page:79,
+ principle:'조건은 감정이 아닙니다. 사건에 대한 느낌은 사건 자체와 다릅니다.',
+ sum:'감정은 행동과 지각을 물들입니다. 일어난 사실과 느낌을 따로 적어 보고, 느낌은 인정하되 행동은 따로 선택하는 연습이 마음챙김과 모리타 요법의 핵심입니다.',
+ bul:['사실만 한 문장으로 쓴다','감정과 강도를 이름 붙인다'],hr:'직장 내 갈등·피드백 상황에서 팀이 어떤 감정을 겪는지 파악합니다.'},
+{k:'c6',no:6,title:'배우는 방식은 사람마다 다르다',short:'학습 스타일',en:'Learning styles',page:89,
+ principle:'우리는 모두 같은 방식으로 배우지 않습니다.',
+ sum:'시각형, 청각형, 체감형으로 나누어 선호하는 소통 방식을 봅니다. 선호하는 방식으로 새 정보를 익히고, 익숙하지 않은 방식도 일부러 사용해 폭을 넓힙니다.',
+ bul:['내 선호 방식을 안다','다른 방식으로 한 번 더 학습한다'],hr:'교육 콘텐츠를 말·그림·실습으로 섞어 설계하는 근거가 됩니다.'},
+{k:'c7',no:7,title:'정보를 모으고 기억하는 여러 가지 마음',short:'다중지능',en:'Multiple intelligences',page:99,
+ principle:'마음은 여러 가지 방식으로 정보를 모으고 간직합니다.',
+ sum:'정서·신체·직관의 마음과 가드너의 여덟 가지 지능을 통해 지능을 하나의 점수로 보는 관점을 넘어섭니다. 강점은 활용하고 약한 지능은 교차 훈련으로 키웁니다.',
+ bul:['여덟 지능의 프로필을 본다','가장 낮은 지능을 연습 대상으로 고른다'],hr:'개인별 강점 프로필로 역할 배치와 팀 조합을 논의할 수 있습니다.'},
+{k:'c8',no:8,title:'복잡한 움직임이 복잡한 사고를 자극한다',short:'움직임과 사고',en:'Complex movement',page:123,
+ principle:'복잡한 움직임은 복잡한 사고를 자극합니다.',
+ sum:'좌우를 교차하는 복합 동작은 양쪽 뇌의 협응을 요구합니다. 움직이면서 계산하는 이중 과제를 하고 전후 컨디션이 달라지는지 직접 확인합니다.',
+ bul:['60초 교차 동작을 한다','전후 집중 컨디션을 비교한다'],hr:'긴 회의나 워크숍 중간의 브레인 브레이크로 바로 쓸 수 있습니다.'},
+{k:'c9',no:9,title:'이완이 통제력을 키운다',short:'이완과 센터링',en:'Relaxation',page:127,
+ principle:'이완은 통제력을 키웁니다.',
+ sum:'스트레스 속에서도 지금 이 순간으로 돌아오는 센터링이 핵심입니다. 호흡은 가장 쉬운 센터링 도구이며 알파파 상태의 이완은 집중과 통찰의 바탕이 됩니다.',
+ bul:['들숨보다 긴 날숨으로 호흡한다','전후 스트레스 수준을 기록한다'],hr:'업무 시작 전 또는 고객 응대 직후의 스트레스 회복 루틴으로 적용합니다.'},
+{k:'c10',no:10,title:'답은 언제나 여러 개다',short:'다양한 답',en:'Multiple answers',page:147,
+ principle:'답은 언제나 여러 개 존재합니다.',
+ sum:'유연한 사고는 관점을 바꾸고, 놀이하듯 접근하고, 맥락을 옮기는 데서 나옵니다. 하나의 문제를 여러 시선에서 바라보면 아이디어의 양과 다양성이 함께 늘어납니다.',
+ bul:['관점을 바꿔 아이디어를 낸다','양(개수)과 다양성(관점 수)을 함께 본다'],hr:'브레인스토밍 품질을 측정하고 팀 아이디어 풀을 한자리에 모읍니다.'},
+{k:'c11',no:11,title:'성공은 모든 것에서의 절제다',short:'균형과 절제',en:'Moderation',page:169,
+ principle:'성공은 모든 일에서의 절제에 있습니다.',
+ sum:'문화적 압력은 한 가지에 몰두하도록 부추깁니다. 우선순위를 분명히 하고 한 가지 집착을 다른 집착으로 바꾸지 않으며 조직 안에서도 균형을 잡아야 합니다.',
+ bul:['영역별 현재와 이상의 차이를 본다','가장 큰 간극 하나를 줄일 행동을 정한다'],hr:'번아웃 예방과 업무·생활 균형 프로그램의 진단 도구로 사용합니다.'},
+{k:'c12',no:12,title:'새로운 일터의 크로스트레이닝',short:'새 일터의 조건',en:'The new workplace',page:179,
+ principle:'크로스트레이닝은 새로운 일터에서 점점 더 중요해집니다.',
+ sum:'창의적 조직의 조건은 경험에 대한 개방성, 스스로 평가하는 힘, 개념을 갖고 노는 힘, 심리적 안전과 자유입니다. 변화에는 대가가 따르므로 팀의 준비도를 먼저 점검합니다.',
+ bul:['우리 팀의 다섯 조건을 점검한다','가장 낮은 조건을 올릴 실행 약속을 쓴다'],hr:'조직문화 진단과 변화관리 워크숍의 마무리 세션으로 적합합니다.'}
+];
+const byK=Object.fromEntries(CH.map(c=>[c.k,c]));
+
+/* ---------- 예시 데이터(저장되지 않음) ---------- */
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const DEMO_NICK=['가온','나래','다솜','라온','마루','보람','새봄','아름','여울','이든','조이','하늘','해든','다온','소담','유나','누리','도담','바다','세움','푸름','한결'];
+const DEMO_TXT=['익숙한 것을 낯설게 보는 힘','제약을 놀이로 바꾸는 능력','틀려도 다시 해 보는 용기','질문을 멈추지 않는 마음','연결되지 않던 것을 잇는 힘'];
+const DEMO_EXP=['회의 첫 5분은 아이디어만 받기','주 1회 다른 팀 사람과 점심','보고서 초안을 그림으로 먼저 그리기','반대 의견 먼저 묻기'];
+const DEMO_AFF=['나는 준비되어 있고 충분히 해낼 수 있다','질문은 나를 돕는 기회다','결과보다 과정에 집중한다'];
+const DEMO_IDEA=['회의 시작 전에 결론 문장을 먼저 적는다','타이머를 놓고 발언 시간을 나눈다','서서 하는 회의로 바꾼다','안건마다 담당자 한 명을 둔다','사전 자료를 읽고 오게 한다','회의 대신 짧은 메신저 정리로 대체한다'];
+function demoParts(){
+  const out=[];
+  DEMO_NICK.forEach((nick,i)=>{
+    const r=mulberry(1000+i*37),ri=(a,b)=>a+Math.floor(r()*(b-a+1)),pick=a=>a[ri(0,a.length-1)],d={};
+    const prob=[.97,.9,.85,.85,.8,.78,.75,.7,.65,.6,.55,.5];
+    const G={
+    c1:()=>({a:Array.from({length:5},()=>ri(2,5)),t:pick(DEMO_TXT)}),
+    c2:()=>({b:BLOCKERS.map((_,j)=>j).filter(j=>r()<[.6,.45,.55,.4,.35,.4,.3,.3][j]),t:pick(DEMO_EXP)}),
+    c3:()=>{const b=ri(2,6);return {sit:ri(0,4),b,a:Math.min(10,b+ri(0,4)),t:pick(DEMO_AFF)}},
+    c4:()=>{const p=.25+r()*.5;return {a:Array.from({length:10},()=>r()<p?1:0)}},
+    c5:()=>({ev:ri(0,5),emo:[0,0,1,2,2,3,4,5][ri(0,7)],int:ri(2,9),act:ri(0,3),t:'사실만 적은 한 문장'}),
+    c6:()=>{const w=[.3+r()*.5,.3+r()*.5,.3+r()*.5];return {a:Q6.map(q=>r()<w[q[1]]?1:0)}},
+    c7:()=>({a:Q7.map((_,j)=>Math.max(1,Math.min(5,ri(2,5)+(j>=10&&j<=13?0:r()<.3?-1:0))))}),
+    c8:()=>{const b=ri(3,7);return {b,a:Math.min(10,b+ri(0,3))}},
+    c9:()=>{const b=ri(4,9);return {b,a:Math.max(0,b-ri(1,4))}},
+    c10:()=>({ideas:Array.from({length:ri(2,5)},()=>({t:pick(DEMO_IDEA),p:ri(0,4)}))}),
+    c11:()=>({cur:AREAS.map(()=>ri(3,9)),ideal:AREAS.map(()=>ri(7,10))}),
+    c12:()=>({a:TRAITS.map(()=>ri(2,5)),t:pick(DEMO_EXP)})};
+    CH.forEach((c,j)=>{if(r()<prob[j])d[c.k]=G[c.k]()});
+    out.push({id:'demo'+i,nick,group:i%2?'B반':'A반',d,demo:true});
+  });
+  return out;
+}
+
+/* ---------- 참가자 집계 ---------- */
+function parts(){
+  let L=others.filter(o=>o.id!==uid).map(o=>({id:o.id,nick:o.nick,group:o.group,d:o.d||{}}));
+  L.push({id:uid||'me',nick:me.nick,group:me.group,d:me.d,me:true});
+  if(useDemo())L=L.concat(demoParts());
+  if(filterGroup)L=L.filter(p=>p.me||p.group===filterGroup);
+  return L;
+}
+const named=p=>p.me?(p.nick||'나'):(p.nick||('참가자 '+Math.floor(hash(p.id)*9000+1000)));
+const rowsOf=k=>parts().filter(p=>p.d&&p.d[k]).map(p=>({p,v:p.d[k],me:!!p.me}));
+const activeCount=()=>parts().filter(p=>p.d&&Object.keys(p.d).length).length;
+
+/* ---------- 차트 ---------- */
+const legend=a=>`<div class="legend">${a.map(x=>`<span><i class="${x[2]||''}" style="background:${x[1]}"></i>${x[0]}</span>`).join('')}</div>`;
+function svg(w,h,inner,label){return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label||'차트')}">${inner}</svg>`}
+function barH(rows,o={}){
+  const w=560,lw=o.lw||150,rh=32,max=o.max||Math.max(1,...rows.map(r=>r.v)),bw=w-lw-64,fmt=o.fmt||(v=>f1(v));
+  const h=rows.length*rh+8;
+  const inner=rows.map((r,i)=>{const y=4+i*rh,l=Math.max(0,bw*r.v/max);
+    let m='';if(r.me!=null){const x=lw+bw*r.me/max;m=`<path d="M${x} ${y+4}l6 10l-6 10l-6 -10z" style="fill:var(--me);stroke:var(--surface);stroke-width:2"/>`}
+    return `<g data-tip="${esc(r.tip||(r.label+' '+fmt(r.v)))}"><text x="0" y="${y+20}">${esc(r.sel?'◆ ':'')}${esc(r.label)}</text><rect x="${lw}" y="${y+7}" width="${l}" height="14" rx="3" style="fill:${r.color||'var(--grp)'}"/>${m}<text class="v" x="${lw+Math.max(l,r.me!=null?bw*r.me/max+8:0)+8}" y="${y+19}">${fmt(r.v)}</text></g>`}).join('');
+  return svg(w,h,inner,o.label);
+}
+function columns(rows,o={}){
+  const w=560,h=210,pl=30,pb=34,pt=14,n=rows.length,max=Math.max(1,...rows.map(r=>r.v)),bw=(w-pl-10)/n;
+  let g='';for(let t=0;t<=3;t++){const v=Math.round(max*t/3),y=h-pb-(h-pb-pt)*t/3;g+=`<line x1="${pl}" x2="${w-6}" y1="${y}" y2="${y}" style="stroke:var(--line)"/><text x="${pl-6}" y="${y+4}" text-anchor="end">${v}</text>`}
+  const inner=g+rows.map((r,i)=>{const bh=(h-pb-pt)*r.v/max,x=pl+i*bw+bw*.15;
+    return `<g data-tip="${esc(r.label+': '+r.v+'명')}"><rect x="${x}" y="${h-pb-bh}" width="${bw*.7}" height="${bh}" rx="3" style="fill:${r.color||'var(--grp)'}"/><text x="${x+bw*.35}" y="${h-pb+15}" text-anchor="middle">${esc(r.label)}</text>${r.v?`<text class="v" x="${x+bw*.35}" y="${h-pb-bh-4}" text-anchor="middle">${r.v}</text>`:''}</g>`}).join('');
+  return svg(w,h,inner,o.label);
+}
+function radar(axes,series,max,label){
+  const W=480,H=360,cx=240,cy=180,R=122,n=axes.length;
+  const pt=(i,v)=>{const a=i*2*Math.PI/n-Math.PI/2;return [cx+R*v/max*Math.cos(a),cy+R*v/max*Math.sin(a)]};
+  let g='';for(let t=1;t<=4;t++){g+=`<polygon points="${axes.map((_,i)=>pt(i,max*t/4).join(',')).join(' ')}" style="fill:none;stroke:var(--line)"/>`}
+  g+=axes.map((a,i)=>{const [x,y]=pt(i,max),[lx,ly]=pt(i,max*1.16),c=Math.cos(i*2*Math.PI/n-Math.PI/2);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" style="stroke:var(--line)"/><text x="${lx}" y="${ly+4}" text-anchor="${Math.abs(c)<.2?'middle':c>0?'start':'end'}">${esc(a)}</text>`}).join('');
+  g+=series.map(s=>`<polygon points="${s.vals.map((v,i)=>pt(i,v).join(',')).join(' ')}" style="fill:${s.color};fill-opacity:${s.dash?0:.16};stroke:${s.color};stroke-width:2;${s.dash?'stroke-dasharray:5 4':''}"/>`+s.vals.map((v,i)=>{const [x,y]=pt(i,v);return `<circle cx="${x}" cy="${y}" r="4" data-tip="${esc(s.name+' · '+axes[i]+' '+f1(v))}" style="fill:${s.color};stroke:var(--surface);stroke-width:2"/>`}).join('')).join('');
+  return svg(W,H,g,label);
+}
+function strip(items,o){
+  const W=560,pl=24,pr=24,lo=o.lo,hi=o.hi,sx=v=>pl+(W-pl-pr)*(v-lo)/(hi-lo),bins={};
+  items.forEach(it=>{const k=it.v;(bins[k]=bins[k]||[]).push(it)});
+  const ms=Math.max(1,...Object.values(bins).map(a=>a.length)),base=44+ms*15+10,H=base+30;
+  let g='';(o.bands||[]).forEach(b=>{g+=`<rect x="${sx(b.a-.5)}" y="22" width="${sx(b.b+.5)-sx(b.a-.5)}" height="${base-22}" style="fill:${b.c};fill-opacity:.07"/><text x="${(sx(b.a-.5)+sx(b.b+.5))/2}" y="16" text-anchor="middle">${esc(b.n)}</text>`});
+  for(let v=lo;v<=hi;v++)g+=`<text x="${sx(v)}" y="${base+18}" text-anchor="middle">${v}</text>`;
+  g+=`<line x1="${pl-6}" x2="${W-pr+6}" y1="${base+2}" y2="${base+2}" style="stroke:var(--line)"/>`;
+  Object.keys(bins).forEach(k=>{const arr=bins[k].sort((a,b)=>(a.me?1:0)-(b.me?1:0));arr.forEach((it,i)=>{
+    g+=`<circle cx="${sx(+k)}" cy="${base-8-i*15}" r="6.5" data-tip="${esc(it.tip)}" style="fill:${it.me?'var(--me)':'var(--grp)'};fill-opacity:${it.me?1:.7};stroke:var(--surface);stroke-width:1.5"/>`})});
+  if(o.mean!=null){const x=sx(o.mean);g+=`<line x1="${x}" x2="${x}" y1="24" y2="${base}" style="stroke:var(--ink);stroke-dasharray:3 3"/><text class="v st" x="${x+4}" y="${base+30>H?H-2:36}">평균 ${f1(o.mean)}</text>`}
+  return svg(W,H+4,g,o.label);
+}
+function scatter(pts,o){
+  const W=560,H=300,pl=40,pb=36,pt=12,pr=14,sx=v=>pl+(W-pl-pr)*(v-o.xlo)/(o.xhi-o.xlo),sy=v=>H-pb-(H-pb-pt)*(v-o.ylo)/(o.yhi-o.ylo);
+  let g='';for(let v=o.xlo;v<=o.xhi;v++)g+=`<line x1="${sx(v)}" x2="${sx(v)}" y1="${pt}" y2="${H-pb}" style="stroke:var(--line)"/><text x="${sx(v)}" y="${H-pb+16}" text-anchor="middle">${v}</text>`;
+  for(let v=o.ylo;v<=o.yhi;v++)g+=`<line x1="${pl}" x2="${W-pr}" y1="${sy(v)}" y2="${sy(v)}" style="stroke:var(--line)"/><text x="${pl-8}" y="${sy(v)+4}" text-anchor="end">${v}</text>`;
+  g+=`<text x="${(pl+W-pr)/2}" y="${H-4}" text-anchor="middle">${o.xl}</text><text transform="translate(11 ${(pt+H-pb)/2}) rotate(-90)" text-anchor="middle">${o.yl}</text>`;
+  pts.sort((a,b)=>(a.me?1:0)-(b.me?1:0)).forEach(p=>{const jx=(hash(p.id+'x')-.5)*16,jy=(hash(p.id+'y')-.5)*16;
+    g+=`<circle cx="${sx(p.x)+jx}" cy="${sy(p.y)+jy}" r="${p.me?8:6}" data-tip="${esc(p.tip)}" style="fill:${p.me?'var(--me)':'var(--grp)'};fill-opacity:${p.me?1:.65};stroke:var(--surface);stroke-width:1.5"/>`});
+  return svg(W,H,g,o.label);
+}
+function heat(rl,cl,m,o={}){
+  const lo=o.lo??0,hi=o.hi??1,lw=o.lw||92,cw=o.cw||60,ch=26,W=lw+cw*cl.length+8,H=40+ch*rl.length+6;
+  let g=cl.map((c,j)=>`<text x="${lw+cw*j+cw/2}" y="30" text-anchor="middle" class="st">${esc(c)}</text>`).join('');
+  g+=rl.map((r,i)=>`<text x="0" y="${40+ch*i+17}" class="st">${esc(r)}</text>`+cl.map((c,j)=>{const v=m[i][j];if(v==null)return '';const t=(v-lo)/(hi-lo||1),op=.1+.85*Math.max(0,Math.min(1,t));
+    return `<g data-tip="${esc(r+' · '+c+': '+(o.fmt?o.fmt(v):v))}"><rect x="${lw+cw*j+1}" y="${40+ch*i+1}" width="${cw-2}" height="${ch-2}" rx="3" style="fill:${o.color||'var(--s1)'};fill-opacity:${op}"/><text x="${lw+cw*j+cw/2}" y="${40+ch*i+17}" text-anchor="middle" class="st ${t>.6?'w':''}" ${t>.6?'':'style="fill:var(--ink)"'}>${o.fmt?o.fmt(v):v}</text></g>`}).join('')).join('');
+  return svg(Math.max(W,360),H,g,o.label);
+}
+function slope(pairs,o){
+  const W=560,H=300,xa=130,xb=430,pt=26,pb=20,sy=v=>H-pb-(H-pb-pt)*v/10;
+  let g=`<text x="${xa}" y="14" text-anchor="middle" class="v">${o.a}</text><text x="${xb}" y="14" text-anchor="middle" class="v">${o.b}</text>`;
+  for(let v=0;v<=10;v+=5)g+=`<line x1="${xa-20}" x2="${xb+20}" y1="${sy(v)}" y2="${sy(v)}" style="stroke:var(--line)"/><text x="${xa-28}" y="${sy(v)+4}" text-anchor="end">${v}</text>`;
+  pairs.sort((a,b)=>(a.me?1:0)-(b.me?1:0)).forEach(p=>{g+=`<g data-tip="${esc(p.tip)}"><line x1="${xa}" x2="${xb}" y1="${sy(p.a)}" y2="${sy(p.b)}" style="stroke:${p.me?'var(--me)':'var(--grp)'};stroke-opacity:${p.me?1:.28};stroke-width:${p.me?3:1.5}"/><circle cx="${xa}" cy="${sy(p.a)}" r="${p.me?5:3}" style="fill:${p.me?'var(--me)':'var(--grp)'}"/><circle cx="${xb}" cy="${sy(p.b)}" r="${p.me?5:3}" style="fill:${p.me?'var(--me)':'var(--grp)'}"/></g>`});
+  const aa=avg(pairs.map(p=>p.a)),ab=avg(pairs.map(p=>p.b));
+  g+=`<line x1="${xa}" x2="${xb}" y1="${sy(aa)}" y2="${sy(ab)}" style="stroke:var(--ink);stroke-width:3"/><text class="v" x="${xa-28}" y="${sy(aa)-8}" text-anchor="end">${f1(aa)}</text><text class="v" x="${xb+28}" y="${sy(ab)+4}">${f1(ab)}</text>`;
+  return svg(W,H,g,o.label);
+}
+function dumbbell(rows,o){
+  const W=560,lw=110,rh=34,pr=20,sx=v=>lw+(W-lw-pr)*v/10,H=rows.length*rh+34;
+  let g='';for(let v=0;v<=10;v+=2)g+=`<line x1="${sx(v)}" x2="${sx(v)}" y1="4" y2="${H-26}" style="stroke:var(--line)"/><text x="${sx(v)}" y="${H-8}" text-anchor="middle">${v}</text>`;
+  rows.forEach((r,i)=>{const y=18+i*rh;g+=`<g data-tip="${esc(r.tip)}"><text x="0" y="${y+4}">${esc(r.label)}</text>`;
+    if(r.n){g+=`<line x1="${sx(r.a)}" x2="${sx(r.b)}" y1="${y}" y2="${y}" style="stroke:var(--muted);stroke-width:3;stroke-linecap:round"/><circle cx="${sx(r.a)}" cy="${y}" r="6" style="fill:var(--surface);stroke:var(--muted);stroke-width:2.5"/><circle cx="${sx(r.b)}" cy="${y}" r="6" style="fill:var(--grp);stroke:var(--surface);stroke-width:2"/>`}
+    g+='</g>'});
+  return svg(W,H,g,o.label);
+}
+function stack100(rows,o){
+  const W=560,lw=70,rh=44,bw=W-lw-16,H=rows.length*rh+8;
+  const inner=rows.map((r,i)=>{const y=4+i*rh,t=sum(r.segs.map(s=>s.n))||1;let x=lw;
+    return `<text x="0" y="${y+27}">${esc(r.label)}</text>`+r.segs.map(s=>{const w=bw*s.n/t,seg=`<g data-tip="${esc(r.label+' · '+s.l+': '+s.n+'명 ('+Math.round(100*s.n/t)+'%)')}"><rect x="${x}" y="${y+8}" width="${Math.max(0,w-2)}" height="26" rx="3" style="fill:${s.c}"/>${w>34?`<text class="st w" x="${x+w/2-1}" y="${y+25}" text-anchor="middle">${Math.round(100*s.n/t)}%</text>`:''}</g>`;x+=w;return seg}).join('')}).join('');
+  return svg(W,H,inner,o.label);
+}
+function ternary(pts,o){
+  const W=460,H=340,A=[230,34],L=[56,296],R=[404,296];
+  let g=`<polygon points="${A} ${L} ${R}" style="fill:none;stroke:var(--line);stroke-width:1.5"/>`;
+  const mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2],C=[(A[0]+L[0]+R[0])/3,(A[1]+L[1]+R[1])/3];
+  [[A,mid(L,R)],[L,mid(A,R)],[R,mid(A,L)]].forEach(s=>g+=`<line x1="${s[0][0]}" y1="${s[0][1]}" x2="${s[1][0]}" y2="${s[1][1]}" style="stroke:var(--line);stroke-dasharray:3 4"/>`);
+  g+=`<text x="${A[0]}" y="22" text-anchor="middle" class="v">시각형</text><text x="${L[0]}" y="316" text-anchor="middle" class="v">청각형</text><text x="${R[0]}" y="316" text-anchor="middle" class="v">체감형</text><text x="${C[0]}" y="${C[1]+4}" text-anchor="middle" class="st">균형</text>`;
+  pts.sort((a,b)=>(a.me?1:0)-(b.me?1:0)).forEach(p=>{const t=p.w[0]+p.w[1]+p.w[2];if(!t)return;const a=p.w[0]/t,l=p.w[1]/t,r=p.w[2]/t;
+    const x=a*A[0]+l*L[0]+r*R[0]+(hash(p.id+'x')-.5)*9,y=a*A[1]+l*L[1]+r*R[1]+(hash(p.id+'y')-.5)*9;
+    g+=`<circle cx="${x}" cy="${y}" r="${p.me?8:6}" data-tip="${esc(p.tip)}" style="fill:${p.me?'var(--me)':'var(--grp)'};fill-opacity:${p.me?1:.6};stroke:var(--surface);stroke-width:1.5"/>`});
+  return svg(W,H,g,o.label);
+}
+function divbars(rows,o){
+  const W=560,lw=70,rh=32,H=rows.length*rh+10,mx=Math.max(1,...rows.map(r=>Math.abs(r.v))),cx=lw+(W-lw-50)/2,half=(W-lw-50)/2;
+  const inner=`<line x1="${cx}" x2="${cx}" y1="0" y2="${H}" style="stroke:var(--muted)"/>`+rows.map((r,i)=>{const y=4+i*rh,l=half*Math.abs(r.v)/mx,x=r.v>=0?cx:cx-l;
+    return `<g data-tip="${esc(r.tip)}"><text x="0" y="${y+20}">${esc(r.label)}</text><rect x="${x}" y="${y+7}" width="${l}" height="14" rx="3" style="fill:${r.v>=0?'var(--s3)':'var(--s2)'}"/><text class="v" x="${r.v>=0?cx+l+6:cx-l-6}" y="${y+19}" text-anchor="${r.v>=0?'start':'end'}">${(r.v>0?'+':'')+f1(r.v)}</text></g>`}).join('');
+  return svg(W,H,inner,o.label);
+}
+function block(title,sub,chart,o={}){
+  const tb=o.table?`<details class="tb"><summary>표로 보기</summary><div class="tw"><table><thead><tr>${o.table.head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${o.table.rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`:'';
+  return `<section class="card"><h3>${title}</h3>${sub?`<p class="sub">${sub}</p>`:''}<div class="chart">${chart}</div>${o.legend?legend(o.legend):''}${tb}</section>`;
+}
+const LG_ME=[['그룹 평균·참가자','var(--grp)'],['나','var(--me)','d']];
+function stats(a){return `<div class="stats">${a.map(s=>`<div class="stat"><b>${s[1]}</b><span>${s[0]}</span></div>`).join('')}</div>`}
+function emptyBox(){return `<section class="card"><h3>아직 제출한 사람이 없습니다</h3><p class="sub">위 활동을 제출하면 이 자리에 모두의 결과가 차트로 나타납니다.</p></section>`}
+function wall(rows,tf){
+  const L=rows.filter(r=>tf(r.v)).slice().sort((a,b)=>(b.me?1:0)-(a.me?1:0)).slice(0,10);
+  return L.length?`<div class="wall">${L.map(r=>`<div class="note ${r.me?'mine':''}">${esc(tf(r.v))}<small>${esc(named(r.p))}${r.me?' · 나':''}</small></div>`).join('')}</div>`:'';
+}
+const myRow=a=>a.find(r=>r.me);
+
+/* ---------- 활동 UI 헬퍼 ---------- */
+const likert=(name,items)=>`<div class="lg"><span>1 전혀 아니다</span><span>5 매우 그렇다</span></div>`+items.map((t,i)=>`<div class="q"><p>${i+1}. ${esc(t)}</p><div class="scale" role="radiogroup">${[1,2,3,4,5].map(v=>`<label><input type="radio" name="${name}${i}" value="${v}"><span>${v}</span></label>`).join('')}</div></div>`).join('');
+const rng=(id,label,v=5)=>`<div class="field"><span class="lab">${label}</span><div class="rng"><input type="range" id="${id}" name="${id}" min="0" max="10" value="${v}"><output>${v}</output></div></div>`;
+const radios=(f,name,n)=>{const a=[];for(let i=0;i<n;i++){const e=f.querySelector(`input[name="${name}${i}"]:checked`);if(!e)return null;a.push(+e.value)}return a};
+const textOf=(f,n)=>(f.elements[n]?.value||'').trim();
+const sel=(id,label,arr)=>`<div class="field"><label for="${id}">${label}</label><select id="${id}" name="${id}">${arr.map((x,i)=>`<option value="${i}">${esc(x)}</option>`).join('')}</select></div>`;
+const need='모든 문항에 답해 주세요.';
+
+/* ---------- 챕터 활동·결과 ---------- */
+CH[0].act={
+ html:()=>`<p class="sub">지금 나의 모습에 가까운 정도를 골라 주세요.</p>`+likert('a',Q1)+`<div class="field"><label for="t">내가 생각하는 창의성이란? (한 줄)</label><input type="text" id="t" name="t" maxlength="60" placeholder="예: 익숙한 것을 낯설게 보는 힘"></div>`,
+ read:f=>{const a=radios(f,'a',5);return a?{v:{a,t:textOf(f,'t')}}:{err:need}}};
+CH[0].res=()=>{const R=rowsOf('c1');if(!R.length)return emptyBox();const m=myRow(R);
+ const rows=Q1.map((q,i)=>({label:q.length>16?q.slice(0,15)+'…':q,v:avg(R.map(r=>r.v.a[i])),me:m?m.v.a[i]:null,tip:q+' · 평균 '+f1(avg(R.map(r=>r.v.a[i])))+(m?' · 나 '+m.v.a[i]:'')}));
+ const tot=avg(R.map(r=>avg(r.v.a)));
+ return stats([['제출 인원',R.length+'명'],['그룹 평균 점수',f1(tot)+' / 5'],['나의 평균',m?f1(avg(m.v.a))+' / 5':'미제출'],['가장 높은 문항',rows.slice().sort((a,b)=>b.v-a.v)[0].label]])
+ +`<div class="grid2">`+block('창의성 진단 문항별 평균','막대는 그룹 평균, 다이아몬드는 내 점수입니다.',barH(rows,{max:5,lw:170,label:'문항별 평균'}),{legend:LG_ME,table:{head:['문항','평균'],rows:rows.map(r=>[r.label,f1(r.v)])}})
+ +`<section class="card"><h3>우리가 말하는 창의성</h3><p class="sub">참가자들이 쓴 한 줄 정의</p>${wall(R,v=>v.t)||'<p class="sub" style="margin-top:12px">아직 한 줄 정의가 없습니다.</p>'}</section></div>`};
+
+CH[1].act={
+ html:()=>`<p class="sub">내 창의성을 가장 자주 막는 요인을 모두 골라 주세요.</p><div class="field"><div class="opts" id="bl">${BLOCKERS.map((b,i)=>`<label><input type="checkbox" name="b" value="${i}"><span>${esc(b)}</span></label>`).join('')}</div></div><div class="field"><label for="t">이번 주 시도해 볼 작은 실험 한 가지</label><input type="text" id="t" name="t" maxlength="60" placeholder="예: 회의 첫 5분은 아이디어만 받기"></div>`,
+ read:f=>{const b=[...f.querySelectorAll('input[name=b]:checked')].map(e=>+e.value);return b.length?{v:{b,t:textOf(f,'t')}}:{err:'한 가지 이상 골라 주세요.'}}};
+CH[1].res=()=>{const R=rowsOf('c2');if(!R.length)return emptyBox();const m=myRow(R);
+ const rows=BLOCKERS.map((b,i)=>({label:b,v:Math.round(100*R.filter(r=>r.v.b.includes(i)).length/R.length),sel:m&&m.v.b.includes(i)})).sort((a,b)=>b.v-a.v);
+ rows.forEach(r=>r.tip=r.label+': '+r.v+'%');
+ return stats([['제출 인원',R.length+'명'],['가장 큰 제약',rows[0].label],['1인당 평균 선택',f1(avg(R.map(r=>r.v.b.length)))+'개']])
+ +`<div class="grid2">`+block('우리를 막는 요인','선택한 사람의 비율, ◆ 표시는 내가 고른 항목입니다.',barH(rows,{max:100,lw:190,fmt:v=>v+'%',label:'제약 요인 비율'}),{table:{head:['요인','선택 비율(%)'],rows:rows.map(r=>[r.label,r.v])}})
+ +`<section class="card"><h3>이번 주 작은 실험</h3><p class="sub">서로의 실험을 보고 하나 가져가 보세요.</p>${wall(R,v=>v.t)||''}</section></div>`};
+
+CH[2].act={
+ html:()=>sel('sit','다가오는 부담스러운 상황 하나',SITS)+rng('b','지금 이 상황이 잘 풀릴 것이라는 기대 (0~10)',4)+`<div class="field"><label for="t">긍정적으로 다시 쓴 한 문장 (확언)</label><input type="text" id="t" name="t" maxlength="70" placeholder="예: 나는 준비되어 있고 충분히 해낼 수 있다"></div>`+rng('a','다시 쓴 뒤의 기대 (0~10)',6),
+ read:f=>({v:{sit:+f.elements.sit.value,b:+f.elements.b.value,a:+f.elements.a.value,t:textOf(f,'t')}})};
+CH[2].res=()=>{const R=rowsOf('c3');if(!R.length)return emptyBox();const m=myRow(R);
+ const g=avg(R.map(r=>r.v.a-r.v.b)),rows=SITS.map((s,i)=>{const L=R.filter(r=>r.v.sit===i);return {label:s,n:L.length,a:avg(L.map(r=>r.v.b)),b:avg(L.map(r=>r.v.a)),tip:s+' ('+L.length+'명) '+(L.length?f1(avg(L.map(r=>r.v.b)))+' → '+f1(avg(L.map(r=>r.v.a))):'')}});
+ return stats([['제출 인원',R.length+'명'],['평균 기대 변화',(g>=0?'+':'')+f1(g)],['변화 있는 사람',Math.round(100*R.filter(r=>r.v.a>r.v.b).length/R.length)+'%'],['나의 변화',m?((m.v.a-m.v.b>=0?'+':'')+(m.v.a-m.v.b)):'미제출']])
+ +`<div class="grid2">`+block('상황별 기대의 변화','회색 원은 다시 쓰기 전, 파란 원은 후의 평균입니다.',dumbbell(rows,{label:'상황별 기대 변화'}),{legend:[['전','var(--muted)'],['후','var(--grp)']],table:{head:['상황','인원','전','후'],rows:rows.map(r=>[r.label,r.n,r.n?f1(r.a):'-',r.n?f1(r.b):'-'])}})
+ +block('참가자별 기대 변화','선 하나가 한 사람, 굵은 검정선이 평균, 주황선이 나입니다.',slope(R.map(r=>({a:r.v.b,b:r.v.a,me:r.me,tip:named(r.p)+' '+r.v.b+' → '+r.v.a})),{a:'다시 쓰기 전',b:'다시 쓴 후',label:'개인별 기대 변화'}),{table:{head:['참가자','전','후'],rows:R.map(r=>[named(r.p),r.v.b,r.v.a])}})
+ +`</div><section class="card"><h3>우리의 확언</h3>${wall(R,v=>v.t)||''}</section>`};
+
+CH[3].act={
+ html:()=>`<p class="sub">두 문장 중 평소의 나와 더 가까운 쪽을 고르세요. 정답은 없습니다.</p>`+Q4.map((q,i)=>`<div class="q"><p>${i+1}번</p><div class="ab"><div class="opts"><label><input type="radio" name="a${i}" value="0"><span>${esc(q[0])}</span></label></div><div class="opts"><label><input type="radio" name="a${i}" value="1"><span>${esc(q[1])}</span></label></div></div></div>`).join(''),
+ read:f=>{const a=radios(f,'a',10);return a?{v:{a}}:{err:need}}};
+CH[3].res=()=>{const R=rowsOf('c4');if(!R.length)return emptyBox();const sc=r=>sum(r.v.a),m=myRow(R);
+ const cat=s=>s<=3?0:s>=7?2:1,cnt=[0,0,0];R.forEach(r=>cnt[cat(sc(r))]++);
+ const type=['분석·순서형','균형형','직관·전체형'];
+ return stats([['제출 인원',R.length+'명'],['그룹 평균 점수',f1(avg(R.map(sc)))+' / 10'],['나의 점수',m?sc(m)+' / 10 · '+type[cat(sc(m))]:'미제출'],['가장 많은 유형',type[cnt.indexOf(Math.max(...cnt))]]])
+ +`<div class="grid2">`+block('사고 성향 분포','0에 가까울수록 분석·순서형, 10에 가까울수록 직관·전체형입니다.',strip(R.map(r=>({v:sc(r),me:r.me,tip:named(r.p)+' · '+sc(r)+'점'})),{lo:0,hi:10,mean:avg(R.map(sc)),bands:[{a:0,b:3,n:'분석·순서',c:'var(--s1)'},{a:4,b:6,n:'균형',c:'var(--s3)'},{a:7,b:10,n:'직관·전체',c:'var(--s2)'}],label:'사고 성향 분포'}),{legend:LG_ME,table:{head:['참가자','점수'],rows:R.map(r=>[named(r.p),sc(r)])}})
+ +block('유형별 비율','균형형이 많을수록 전뇌 사고에 가깝습니다.',stack100([{label:'그룹',segs:type.map((t,i)=>({l:t,n:cnt[i],c:['var(--s1)','var(--s3)','var(--s2)'][i]}))}],{label:'유형별 비율'}),{legend:type.map((t,i)=>[t,['var(--s1)','var(--s3)','var(--s2)'][i]]),table:{head:['유형','인원'],rows:type.map((t,i)=>[t,cnt[i]])}})+`</div>`};
+
+CH[4].act={
+ html:()=>sel('ev','최근 겪었거나 겪을 수 있는 업무 상황',EVENTS)+`<div class="field"><label for="t">사실만 한 문장으로 쓰기 (해석·감정 없이)</label><input type="text" id="t" name="t" maxlength="80" placeholder="예: 금요일 오후에 마감이 이틀 앞당겨졌다"></div>`+sel('emo','그때 가장 크게 느낀 감정',EMOS)+rng('int','감정의 강도 (0~10)',5)+sel('act','감정을 인정한 뒤 선택할 행동',ACTS),
+ read:f=>({v:{ev:+f.elements.ev.value,emo:+f.elements.emo.value,int:+f.elements.int.value,act:+f.elements.act.value,t:textOf(f,'t')}})};
+CH[4].res=()=>{const R=rowsOf('c5');if(!R.length)return emptyBox();
+ const mat=EVENTS.map((e,i)=>EMOS.map((m,j)=>R.filter(r=>r.v.ev===i&&r.v.emo===j).length)),top=EMOS.map((e,j)=>R.filter(r=>r.v.emo===j).length);
+ const mi=EMOS.map((e,j)=>{const L=R.filter(r=>r.v.emo===j);return {label:e,v:L.length?avg(L.map(r=>r.v.int)):0,tip:e+' · '+L.length+'명 · 평균 강도 '+(L.length?f1(avg(L.map(r=>r.v.int))):'-')}});
+ const ac=ACTS.map((a,i)=>({label:a,v:R.filter(r=>r.v.act===i).length,tip:a+' '+R.filter(r=>r.v.act===i).length+'명'}));
+ return stats([['제출 인원',R.length+'명'],['가장 흔한 감정',EMOS[top.indexOf(Math.max(...top))]],['평균 감정 강도',f1(avg(R.map(r=>r.v.int)))+' / 10'],['가장 어려운 상황',EVENTS[EVENTS.map((e,i)=>sum(mat[i])).indexOf(Math.max(...EVENTS.map((e,i)=>sum(mat[i]))))]]])
+ +`<div class="grid2">`+block('상황 × 감정 지도','칸이 진할수록 같은 감정을 느낀 사람이 많습니다.',heat(EVENTS.map(e=>e.length>9?e.slice(0,9)+'…':e),EMOS,mat,{lo:0,hi:Math.max(1,...mat.flat()),lw:104,cw:54,fmt:v=>v||'',label:'상황과 감정 히트맵'}),{table:{head:['상황',...EMOS],rows:EVENTS.map((e,i)=>[e,...mat[i]])}})
+ +block('감정별 평균 강도','감정마다 얼마나 강하게 느꼈는지 보여 줍니다.',barH(mi,{max:10,lw:70,label:'감정별 평균 강도'}),{table:{head:['감정','평균 강도'],rows:mi.map(r=>[r.label,f1(r.v)])}})
+ +block('감정을 인정한 뒤 선택한 행동','',barH(ac,{lw:150,fmt:v=>v+'명',label:'선택 행동'}),{table:{head:['행동','인원'],rows:ac.map(r=>[r.label,r.v])}})+`</div>`};
+
+CH[5].act={
+ html:()=>`<p class="sub">각 문장이 나와 맞으면 “예”, 아니면 “아니오”를 고르세요. 첫 느낌을 따르세요.</p>`+Q6.map((q,i)=>`<div class="q"><p>${i+1}. ${esc(q[0])}</p><div class="opts"><label><input type="radio" name="a${i}" value="1"><span>예</span></label><label><input type="radio" name="a${i}" value="0"><span>아니오</span></label></div></div>`).join(''),
+ read:f=>{const a=radios(f,'a',15);return a?{v:{a}}:{err:need}}};
+const cnt6=v=>[0,1,2].map(s=>sum(v.a.filter((_,i)=>Q6[i][1]===s)));
+CH[5].res=()=>{const R=rowsOf('c6');if(!R.length)return emptyBox();const m=myRow(R);
+ const av=[0,1,2].map(s=>avg(R.map(r=>cnt6(r.v)[s]))),dom=R.map(r=>{const c=cnt6(r.v);return c.indexOf(Math.max(...c))}),dc=[0,1,2].map(s=>dom.filter(d=>d===s).length);
+ return stats([['제출 인원',R.length+'명'],['가장 많은 유형',STYLES[dc.indexOf(Math.max(...dc))]],['나의 유형',m?STYLES[cnt6(m.v).indexOf(Math.max(...cnt6(m.v)))]:'미제출']])
+ +`<div class="grid2">`+block('학습 스타일 삼각 지도','꼭짓점에 가까울수록 그 방식을 강하게 선호합니다. 한가운데는 균형형입니다.',ternary(R.map(r=>({id:r.p.id,w:cnt6(r.v),me:r.me,tip:named(r.p)+' · 시각 '+cnt6(r.v)[0]+' / 청각 '+cnt6(r.v)[1]+' / 체감 '+cnt6(r.v)[2]})),{label:'학습 스타일 삼각 지도'}),{legend:LG_ME,table:{head:['참가자','시각','청각','체감'],rows:R.map(r=>[named(r.p),...cnt6(r.v)])}})
+ +block('유형별 평균 점수 (최대 5)','막대는 그룹 평균, 다이아몬드는 내 점수입니다.',barH(STYLES.map((s,i)=>({label:s,v:av[i],me:m?cnt6(m.v)[i]:null,color:['var(--s1)','var(--s7)','var(--s3)'][i],tip:s+' 평균 '+f1(av[i])})),{max:5,lw:70,label:'유형별 평균'}),{legend:[['그룹 평균','var(--muted)'],['나','var(--me)','d']],table:{head:['유형','평균'],rows:STYLES.map((s,i)=>[s,f1(av[i])])}})+`</div>`};
+
+CH[6].act={
+ html:()=>`<p class="sub">두 문항씩 묶여 있습니다. 평소의 나와 맞는 정도를 고르세요.</p>`+MI.map((n,k)=>`<div class="q" style="border-top:1px solid var(--line)"><p style="font-weight:700">${n}</p></div>${likert('a'+k+'_',Q7.slice(k*2,k*2+2)).replace(/<div class="lg">.*?<\/div>/,'')}`).join(''),
+ read:f=>{const a=[];for(let k=0;k<8;k++)for(let j=0;j<2;j++){const e=f.querySelector(`input[name="a${k}_${j}"]:checked`);if(!e)return {err:need};a.push(+e.value)}return {v:{a}}}};
+const mi7=v=>MI.map((_,k)=>(v.a[k*2]+v.a[k*2+1])/2);
+CH[6].res=()=>{const R=rowsOf('c7');if(!R.length)return emptyBox();const m=myRow(R);
+ const gm=MI.map((_,k)=>avg(R.map(r=>mi7(r.v)[k]))),top=gm.indexOf(Math.max(...gm));
+ const ser=[{name:'그룹 평균',vals:gm,color:'var(--grp)'}];if(m)ser.push({name:'나',vals:mi7(m.v),color:'var(--me)'});
+ const show=R.slice().sort((a,b)=>(b.me?1:0)-(a.me?1:0)).slice(0,14);
+ return stats([['제출 인원',R.length+'명'],['그룹의 강점',MI[top]+' '+f1(gm[top])],['그룹의 연습 영역',MI[gm.indexOf(Math.min(...gm))]],['나의 강점',m?MI[mi7(m.v).indexOf(Math.max(...mi7(m.v)))]:'미제출']])
+ +`<div class="grid2">`+block('다중지능 프로필','파랑은 그룹 평균, 주황은 나입니다. 값은 1~5입니다.',radar(MI,ser,5,'다중지능 레이더'),{legend:[['그룹 평균','var(--grp)'],['나','var(--me)']],table:{head:['지능','그룹 평균'],rows:MI.map((n,k)=>[n,f1(gm[k])])}})
+ +block('참가자별 지능 히트맵','진할수록 점수가 높습니다. 최대 14명까지 표시합니다.',heat(show.map(r=>named(r.p)),MI,show.map(r=>mi7(r.v)),{lo:1,hi:5,lw:76,cw:52,fmt:v=>f1(v),label:'참가자별 지능 히트맵'}),{table:{head:['참가자',...MI],rows:show.map(r=>[named(r.p),...mi7(r.v).map(f1)])}})+`</div>`};
+
+function guided(ck){return `<div class="pacer" id="pc"><div><div class="big" id="pcBig">준비되면 시작을 누르세요</div><div class="small" id="pcSm"></div></div></div>`}
+CH[7].act={
+ html:()=>rng('b','① 지금 나의 집중 컨디션 (0~10)',5)+`<div class="field"><span class="lab">② 60초 교차 동작</span><p class="sub">서서 시작합니다. 앞 30초는 교차 터치, 뒤 30초는 움직이면서 100에서 7씩 빼기를 합니다.</p></div>`+guided()+`<div class="row"><button type="button" class="btn alt" id="go">시작</button></div>`+rng('a','③ 끝난 뒤의 집중 컨디션 (0~10)',5),
+ bind:f=>{const go=f.querySelector('#go'),big=f.querySelector('#pcBig'),sm=f.querySelector('#pcSm');let tm;
+  go.onclick=()=>{clearInterval(tm);let t=60;go.disabled=true;f.dataset.done='';
+   const tick=()=>{const left=t,sec=60-left,side=Math.floor(sec/2)%2;
+    if(left<=0){clearInterval(tm);big.textContent='완료! 아래 ③을 입력하세요';sm.textContent='';go.disabled=false;go.textContent='다시 하기';f.dataset.done='1';return}
+    big.textContent=side?'왼손 → 오른쪽 무릎':'오른손 → 왼쪽 무릎';sm.textContent=(sec<30?'교차 터치':'터치하며 100에서 7씩 빼기 (93, 86, …)')+' · 남은 시간 '+left+'초';t--};
+   tick();tm=setInterval(tick,1000)}},
+ read:f=>f.dataset.done?{v:{b:+f.elements.b.value,a:+f.elements.a.value}}:{err:'60초 동작을 먼저 끝까지 진행해 주세요.'}};
+const prepost=(ck,words)=>{const R=rowsOf(ck);return R};
+CH[7].res=()=>{const R=rowsOf('c8');if(!R.length)return emptyBox();const m=myRow(R),dl=R.map(r=>r.v.a-r.v.b);
+ const bins=[-2,-1,0,1,2,3,4,5].map(d=>({label:(d>0?'+':'')+d,v:dl.filter(x=>d===5?x>=5:d===-2?x<=-2:x===d).length,color:d<0?'var(--s2)':d===0?'var(--muted)':'var(--s3)'}));
+ return stats([['제출 인원',R.length+'명'],['평균 변화',(avg(dl)>=0?'+':'')+f1(avg(dl))],['컨디션이 오른 사람',Math.round(100*dl.filter(x=>x>0).length/R.length)+'%'],['나의 변화',m?((m.v.a-m.v.b>=0?'+':'')+(m.v.a-m.v.b)):'미제출']])
+ +`<div class="grid2">`+block('동작 전후 집중 컨디션','선 하나가 한 사람, 굵은 검정선이 평균, 주황선이 나입니다.',slope(R.map(r=>({a:r.v.b,b:r.v.a,me:r.me,tip:named(r.p)+' '+r.v.b+' → '+r.v.a})),{a:'동작 전',b:'동작 후',label:'동작 전후'}),{table:{head:['참가자','전','후'],rows:R.map(r=>[named(r.p),r.v.b,r.v.a])}})
+ +block('변화량 분포','가로축은 후 − 전 점수, 세로축은 사람 수입니다.',columns(bins,{label:'변화량 분포'}),{table:{head:['변화','인원'],rows:bins.map(b=>[b.label,b.v])}})+`</div>`};
+
+CH[8].act={
+ html:()=>rng('b','① 지금 나의 스트레스 수준 (0~10)',6)+`<div class="field"><span class="lab">② 호흡 5회 (들숨 4초 · 날숨 6초)</span><p class="sub">어깨 힘을 빼고 배로 숨을 쉬세요. 원이 커질 때 들이마시고 작아질 때 내쉽니다.</p></div><div class="pacer"><div><div class="ball" id="ball"></div><div class="big" id="pcBig">준비되면 시작을 누르세요</div><div class="small" id="pcSm"></div></div></div><div class="row"><button type="button" class="btn alt" id="go">시작</button></div>`+rng('a','③ 끝난 뒤의 스트레스 수준 (0~10)',4),
+ bind:f=>{const go=f.querySelector('#go'),big=f.querySelector('#pcBig'),sm=f.querySelector('#pcSm'),ball=f.querySelector('#ball');let to=[];
+  go.onclick=()=>{to.forEach(clearTimeout);to=[];go.disabled=true;f.dataset.done='';let c=0;
+   const cycle=()=>{if(c>=5){big.textContent='완료! 아래 ③을 입력하세요';sm.textContent='';ball.style.transform='scale(1)';go.disabled=false;go.textContent='다시 하기';f.dataset.done='1';return}
+    c++;big.textContent='들이마시기';sm.textContent=c+' / 5 · 4초';ball.style.transition='transform 4s ease-in-out';ball.style.transform='scale(1.7)';
+    to.push(setTimeout(()=>{big.textContent='천천히 내쉬기';sm.textContent=c+' / 5 · 6초';ball.style.transition='transform 6s ease-in-out';ball.style.transform='scale(1)'},4000));
+    to.push(setTimeout(cycle,10000))};cycle()}},
+ read:f=>f.dataset.done?{v:{b:+f.elements.b.value,a:+f.elements.a.value}}:{err:'호흡 5회를 먼저 끝까지 진행해 주세요.'}};
+CH[8].res=()=>{const R=rowsOf('c9');if(!R.length)return emptyBox();const m=myRow(R),dl=R.map(r=>r.v.b-r.v.a),band=x=>x<=3?0:x<=6?1:2,BL=['낮음 (0~3)','보통 (4~6)','높음 (7~10)'],BC=['var(--s3)','var(--s4)','var(--s8)'];
+ const seg=k=>BL.map((l,i)=>({l,n:R.filter(r=>band(r.v[k])===i).length,c:BC[i]}));
+ const bins=[-1,0,1,2,3,4,5].map(d=>({label:d<0?'증가':d===0?'0':'−'+d+(d===5?'+':''),v:dl.filter(x=>d===5?x>=5:d===-1?x<=-1:x===d).length,color:d<=0?'var(--muted)':'var(--s3)'}));
+ return stats([['제출 인원',R.length+'명'],['평균 스트레스 감소',f1(avg(dl))+'점'],['전 평균 → 후 평균',f1(avg(R.map(r=>r.v.b)))+' → '+f1(avg(R.map(r=>r.v.a)))],['나의 변화',m?(m.v.b-m.v.a>0?'−':'')+Math.abs(m.v.b-m.v.a)+'점':'미제출']])
+ +`<div class="grid2">`+block('스트레스 수준 구성 비율','호흡 전후 낮음·보통·높음 비율을 비교합니다.',stack100([{label:'호흡 전',segs:seg('b')},{label:'호흡 후',segs:seg('a')}],{label:'스트레스 구성'}),{legend:BL.map((l,i)=>[l,BC[i]]),table:{head:['구간','전','후'],rows:BL.map((l,i)=>[l,seg('b')[i].n,seg('a')[i].n])}})
+ +block('스트레스 감소량 분포','가로축은 감소한 점수, 세로축은 사람 수입니다.',columns(bins,{label:'감소량 분포'}),{table:{head:['감소','인원'],rows:bins.map(b=>[b.label,b.v])}})+`</div>`};
+
+CH[9].act={
+ html:()=>`<p class="sub">문제: <b>팀 회의가 길어지기만 하고 결론이 나지 않는다.</b><br>서로 다른 시선에서 해결 아이디어를 최대 5개 적고, 각각 어떤 관점인지 고르세요. 2개 이상 필요합니다.</p>`+[0,1,2,3,4].map(i=>`<div class="field"><label for="i${i}">아이디어 ${i+1}</label><input type="text" id="i${i}" name="i${i}" maxlength="70"><select id="p${i}" name="p${i}" aria-label="관점 ${i+1}">${PERSP.map((p,j)=>`<option value="${j}">${esc(p)}의 시선</option>`).join('')}</select></div>`).join(''),
+ read:f=>{const ideas=[];for(let i=0;i<5;i++){const t=textOf(f,'i'+i);if(t)ideas.push({t,p:+f.elements['p'+i].value})}return ideas.length>=2?{v:{ideas}}:{err:'아이디어를 2개 이상 적어 주세요.'}}};
+CH[9].res=()=>{const R=rowsOf('c10');if(!R.length)return emptyBox();const fl=r=>new Set(r.v.ideas.map(i=>i.p)).size,m=myRow(R);
+ const pc=PERSP.map((p,j)=>({label:p+'의 시선',v:sum(R.map(r=>r.v.ideas.filter(i=>i.p===j).length)),color:['var(--s1)','var(--s7)','var(--s3)','var(--s4)','var(--s5)'][j]}));pc.forEach(r=>r.tip=r.label+' '+r.v+'개');
+ const all=[];R.forEach(r=>r.v.ideas.forEach(i=>all.push({t:i.t,p:i.p,me:r.me,n:named(r.p)})));all.sort((a,b)=>(b.me?1:0)-(a.me?1:0));
+ return stats([['제출 인원',R.length+'명'],['모인 아이디어',all.length+'개'],['평균 개수(양)',f1(avg(R.map(r=>r.v.ideas.length)))],['평균 관점 수(다양성)',f1(avg(R.map(fl)))]])
+ +`<div class="grid2">`+block('아이디어 양 × 관점 다양성','오른쪽 위로 갈수록 많이, 다양하게 생각한 것입니다.',scatter(R.map(r=>({id:r.p.id,x:r.v.ideas.length,y:fl(r),me:r.me,tip:named(r.p)+' · '+r.v.ideas.length+'개, '+fl(r)+'개 관점'})),{xlo:1,xhi:5,ylo:1,yhi:5,xl:'아이디어 개수',yl:'사용한 관점 수',label:'양과 다양성 산점도'}),{legend:LG_ME,table:{head:['참가자','개수','관점 수'],rows:R.map(r=>[named(r.p),r.v.ideas.length,fl(r)])}})
+ +block('관점별 아이디어 수','아직 덜 쓰인 관점이 다음 발상의 힌트입니다.',barH(pc,{lw:130,fmt:v=>v+'개',label:'관점별 아이디어 수'}),{table:{head:['관점','개수'],rows:pc.map(r=>[r.label,r.v])}})
+ +`</div><section class="card"><h3>아이디어 월</h3><p class="sub">모두의 아이디어를 읽고 마음에 드는 것을 골라 보세요.</p><div class="wall">${all.slice(0,14).map(a=>`<div class="note ${a.me?'mine':''}"><span class="chip">${esc(PERSP[a.p])}</span>${esc(a.t)}<small>${esc(a.n)}${a.me?' · 나':''}</small></div>`).join('')}</div></section>`};
+
+CH[10].act={
+ html:()=>`<p class="sub">영역별로 현재 만족도와 이상적인 수준을 0~10으로 정하세요.</p>`+AREAS.map((a,i)=>`<div class="q"><p style="font-weight:700">${a}</p>${rng('c'+i,'현재',5)}${rng('d'+i,'이상',8)}</div>`).join(''),
+ read:f=>({v:{cur:AREAS.map((_,i)=>+f.elements['c'+i].value),ideal:AREAS.map((_,i)=>+f.elements['d'+i].value)}})};
+CH[10].res=()=>{const R=rowsOf('c11');if(!R.length)return emptyBox();const m=myRow(R);
+ const gc=AREAS.map((_,i)=>avg(R.map(r=>r.v.cur[i]))),gi=AREAS.map((_,i)=>avg(R.map(r=>r.v.ideal[i]))),gap=AREAS.map((a,i)=>({label:a,v:gi[i]-gc[i],tip:a+' · 현재 '+f1(gc[i])+' / 이상 '+f1(gi[i])})).sort((a,b)=>b.v-a.v);
+ const ser=[{name:'그룹 현재',vals:gc,color:'var(--grp)'},{name:'그룹 이상',vals:gi,color:'var(--s3)',dash:1}];if(m)ser.push({name:'나의 현재',vals:m.v.cur,color:'var(--me)'});
+ return stats([['제출 인원',R.length+'명'],['가장 큰 간극',gap[0].label+' '+(gap[0].v>0?'+':'')+f1(gap[0].v)],['가장 만족스러운 영역',AREAS[gc.indexOf(Math.max(...gc))]+' '+f1(Math.max(...gc))],['나의 평균 만족도',m?f1(avg(m.v.cur)):'미제출']])
+ +`<div class="grid2">`+block('균형 휠','실선은 현재, 점선은 이상입니다. 두 선이 멀수록 간극이 큽니다.',radar(AREAS,ser,10,'균형 레이더'),{legend:[['그룹 현재','var(--grp)'],['그룹 이상','var(--s3)'],['나의 현재','var(--me)']],table:{head:['영역','현재','이상'],rows:AREAS.map((a,i)=>[a,f1(gc[i]),f1(gi[i])])}})
+ +block('이상과 현재의 간극','초록은 채워야 할 영역, 주황은 이미 이상보다 높은 영역입니다.',divbars(gap,{label:'간극 막대'}),{table:{head:['영역','간극'],rows:gap.map(g=>[g.label,f1(g.v)])}})+`</div>`};
+
+CH[11].act={
+ html:()=>`<p class="sub">우리 팀(또는 내가 속한 조직)에 해당하는 정도를 골라 주세요.</p>`+likert('a',Q12)+`<div class="field"><label for="t">가장 낮은 조건을 올리기 위한 실행 약속 한 가지</label><input type="text" id="t" name="t" maxlength="70" placeholder="예: 반대 의견 먼저 묻기"></div>`,
+ read:f=>{const a=radios(f,'a',5);return a?{v:{a,t:textOf(f,'t')}}:{err:need}}};
+CH[11].res=()=>{const R=rowsOf('c12');if(!R.length)return emptyBox();const m=myRow(R),ga=TRAITS.map((_,i)=>avg(R.map(r=>r.v.a[i]))),low=ga.indexOf(Math.min(...ga));
+ const show=R.slice().sort((a,b)=>(b.me?1:0)-(a.me?1:0)).slice(0,14);
+ return stats([['제출 인원',R.length+'명'],['가장 강한 조건',TRAITS[ga.indexOf(Math.max(...ga))]],['가장 약한 조건',TRAITS[low]],['종합 준비도',f1(avg(ga))+' / 5']])
+ +`<div class="grid2">`+block('조건별 준비도','막대는 그룹 평균, 다이아몬드는 내 점수입니다.',barH(TRAITS.map((t,i)=>({label:t,v:ga[i],me:m?m.v.a[i]:null,color:i===low?'var(--s2)':'var(--grp)',tip:t+' 평균 '+f1(ga[i])})),{max:5,lw:150,label:'조건별 준비도'}),{legend:[['그룹 평균','var(--grp)'],['가장 약한 조건','var(--s2)'],['나','var(--me)','d']],table:{head:['조건','평균'],rows:TRAITS.map((t,i)=>[t,f1(ga[i])])}})
+ +block('참가자별 조건 히트맵','진할수록 준비도가 높습니다. 최대 14명까지 표시합니다.',heat(show.map(r=>named(r.p)),TRAITS.map(t=>t.length>6?t.slice(0,6)+'…':t),show.map(r=>r.v.a),{lo:1,hi:5,lw:76,cw:62,label:'참가자별 조건 히트맵'}),{table:{head:['참가자',...TRAITS],rows:show.map(r=>[named(r.p),...r.v.a])}})
+ +`</div><section class="card"><h3>우리의 실행 약속</h3>${wall(R,v=>v.t)||''}</section>`};
+
+/* ---------- 홈 ---------- */
+function homeHTML(){
+  const P=parts().filter(p=>p.d&&Object.keys(p.d).length),subs=CH.map(c=>({label:c.no+'. '+c.short,v:P.filter(p=>p.d[c.k]).length,tip:c.short+' '+P.filter(p=>p.d[c.k]).length+'명 제출'}));
+  const mine=CH.filter(c=>me.d[c.k]).length,total=sum(subs.map(s=>s.v));
+  const show=P.slice().sort((a,b)=>(b.me?1:0)-(a.me?1:0)).slice(0,18);
+  const mat=show.map(p=>CH.map(c=>p.d[c.k]?1:0));
+  return `<div class="chead"><div class="kicker">HR 성인 뇌훈련 프로그램</div><h2>함께 훈련하고, 함께 확인합니다</h2><p class="principle">12개 챕터를 순서대로 진행하면서 활동을 제출하면 모든 참가자의 결과가 실시간으로 차트에 모입니다.</p></div>
+  <div class="how"><div><b>1. 내 정보 입력</b>위쪽에 닉네임과 그룹 코드를 입력합니다. 같은 교육 차수는 같은 코드를 씁니다.</div><div><b>2. 챕터 활동 제출</b>왼쪽 목록에서 챕터를 고르고 3~5분 활동을 제출합니다.</div><div><b>3. 결과 함께 보기</b>제출하는 즉시 내 위치(주황)와 그룹 분포(파랑)가 차트에 나타납니다.</div></div>
+  ${stats([['참가자',P.length+'명'],['전체 제출',total+'건'],['내 진행',mine+' / 12 챕터'],['가장 많이 참여한 챕터',total?subs.slice().sort((a,b)=>b.v-a.v)[0].label.replace(/^\d+\.\s/,''):'-']])}
+  <div class="grid2">${block('챕터별 제출 현황','막대가 길수록 많은 참가자가 제출했습니다.',barH(subs,{lw:140,fmt:v=>v+'명',max:Math.max(1,...subs.map(s=>s.v)),label:'챕터별 제출 인원'}),{table:{head:['챕터','제출 인원'],rows:subs.map(s=>[s.label,s.v])}})
+  +block('참가자별 진행 매트릭스','채워진 칸이 제출한 챕터입니다. 최대 18명까지 표시합니다.',heat(show.map(p=>named(p)),CH.map(c=>String(c.no)),mat,{lo:0,hi:1,lw:76,cw:34,fmt:v=>v?'✓':'',label:'진행 매트릭스'}),{table:{head:['참가자',...CH.map(c=>c.no)],rows:show.map((p,i)=>[named(p),...mat[i].map(v=>v?'✓':'')])}})}</div>`;
+}
+
+/* ---------- 렌더링 ---------- */
+function renderNav(){
+  const P=parts();
+  $('#nav').innerHTML=`<button data-t="home" aria-current="${tab==='home'}"><span class="no">◎</span><span>전체 현황</span><span></span></button><div class="sep"></div>`+CH.map(c=>{const n=P.filter(p=>p.d&&p.d[c.k]).length;return `<button data-t="${c.k}" aria-current="${tab===c.k}"><span class="no">${String(c.no).padStart(2,'0')}</span><span>${esc(c.short)}</span><span>${me.d[c.k]?'<span class="ck" title="제출함">✓</span>':`<span class="n">${n}</span>`}</span></button>`}).join('');
+  $('#nav').querySelectorAll('button').forEach(b=>b.onclick=()=>go(b.dataset.t));
+}
+function renderChrome(){
+  const n=activeCount();
+  $('#liveTxt').textContent=(db?'실시간 연결':'로컬 모드')+' · '+n+'명 참여';
+  const gs=[...new Set([...others.map(o=>o.group),me.group].filter(Boolean))];
+  const sel=$('#flt');const cur=filterGroup;
+  sel.innerHTML='<option value="">전체 참가자</option>'+gs.map(g=>`<option value="${esc(g)}" ${g===cur?'selected':''}>${esc(g)} 그룹만</option>`).join('');
+  const b=[];
+  if(!db)b.push('로그인 상태에서 열어야 다른 참가자와 결과가 공유됩니다. 지금은 내 응답만 이 화면에 표시됩니다.');
+  if(dbError)b.push(dbError);
+  if(useDemo())b.push('예시 데이터가 함께 표시되고 있습니다. 실제 참가자가 제출하면 자동으로 사라지며, 위의 “예시 데이터” 체크로 직접 켜고 끌 수 있습니다.');
+  $('#banner').innerHTML=b.map(t=>`<div class="banner">${esc(t)}</div>`).join('');
+  $('#demoCk').checked=useDemo();
+}
+function renderResults(){
+  const el=$('#res');if(!el)return;
+  const c=byK[tab];el.innerHTML=c?c.res():'';
+  renderNav();renderChrome();
+}
+function renderActivity(){
+  const main=$('#main');
+  if(tab==='home'){main.innerHTML=`<div id="home">${homeHTML()}</div>`;return}
+  const c=byK[tab];if(!c){tab='home';return renderActivity()}
+  main.innerHTML=`<div class="chead"><div class="kicker">챕터 ${String(c.no).padStart(2,'0')} · 교재 ${c.page}쪽</div><h2>${esc(c.title)}</h2><div class="en">${esc(c.en)}</div><p class="principle">${esc(c.principle)}</p></div>
+  <div class="sum"><p>${esc(c.sum)}</p><ul>${c.bul.map(b=>`<li>${esc(b)}</li>`).join('')}</ul><p class="hr"><b>HR 적용</b> ${esc(c.hr)}</p></div>
+  <section class="card act"><h3>함께 하는 활동 <span class="badge ${me.d[c.k]?'ok':''}" id="stat">${me.d[c.k]?'제출 완료':'미제출'}</span></h3><form id="f" novalidate>${c.act.html()}<div class="row"><button class="btn" type="submit">제출하고 결과 보기</button><span class="msg" id="msg" role="status"></span></div></form></section>
+  <div id="res" style="display:flex;flex-direction:column;gap:16px"></div>`;
+  const f=$('#f');if(c.act.bind)c.act.bind(f);
+  f.addEventListener('input',e=>{if(e.target.type==='range')e.target.closest('.rng').querySelector('output').textContent=e.target.value});
+  f.addEventListener('submit',async e=>{e.preventDefault();const r=c.act.read(f),msg=$('#msg');
+    if(r.err){msg.className='msg err';msg.textContent=r.err;return}
+    me.d[c.k]=r.v;me.u=Date.now();msg.className='msg';msg.textContent='저장 중…';
+    const ok=await persist();msg.textContent=ok?'제출했습니다. 아래에서 결과를 확인하세요.':'이 화면에만 반영되었습니다.';
+    $('#stat').textContent='제출 완료';$('#stat').className='badge ok';renderResults();$('#res').scrollIntoView({behavior:'smooth',block:'start'})});
+  renderResults();
+}
+function go(t){tab=t;try{location.hash=t}catch(e){}renderNav();renderActivity();window.scrollTo({top:0})}
+async function persist(){
+  store.set('bl_nick',me.nick);store.set('bl_grp',me.group);
+  if(!db||!uid)return false;
+  try{await db.doc('r/'+uid).set({nick:me.nick||'',group:me.group||'',u:me.u||Date.now(),d:me.d});dbError='';renderChrome();return true}
+  catch(e){dbError='저장하지 못했습니다. 이 링크가 보기 전용이면 응답을 제출할 수 없습니다. 진행자에게 참여 권한을 요청하세요.';renderChrome();return false}
+}
+
+/* ---------- 이벤트 ---------- */
+document.addEventListener('mousemove',e=>{const t=e.target.closest&&e.target.closest('[data-tip]'),tip=$('#tip');
+  if(t){tip.textContent=t.getAttribute('data-tip');tip.style.opacity=1;const w=tip.offsetWidth;tip.style.left=Math.min(innerWidth-w-8,e.clientX+12)+'px';tip.style.top=(e.clientY+14)+'px'}else tip.style.opacity=0});
+$('#nick').value=me.nick;$('#grp').value=me.group;
+$('#nick').addEventListener('change',e=>{me.nick=e.target.value.trim();if(Object.keys(me.d).length)persist();renderNav();renderResults()});
+$('#grp').addEventListener('change',e=>{me.group=e.target.value.trim();if(Object.keys(me.d).length)persist();renderChrome()});
+$('#flt').addEventListener('change',e=>{filterGroup=e.target.value;tab==='home'?renderActivity():renderResults();renderNav()});
+$('#demoCk').addEventListener('change',e=>{demoManual=e.target.checked;tab==='home'?renderActivity():renderResults()});
+window.addEventListener('hashchange',()=>{const t=location.hash.replace('#','');if(t&&t!==tab&&(t==='home'||byK[t]))go(t)});
+
+/* ---------- 시작 ---------- */
+renderNav();renderChrome();renderActivity();
+(async()=>{
+  try{
+    const user=await window.claude?.use?.('user'),d=await window.claude?.use?.('db');
+    if(!d||!user){renderChrome();return}
+    db=d;uid=await user.id();
+    db.collection('r').onSnapshot(snap=>{
+      others=snap.docs.map(x=>({id:x.id,...(x.data()||{})}));
+      const mine=others.find(o=>o.id===uid);
+      if(!loaded){loaded=true;if(mine){me.d=mine.d||{};if(!me.nick)me.nick=mine.nick||'';if(!me.group)me.group=mine.group||'';$('#nick').value=me.nick;$('#grp').value=me.group}
+        renderActivity();}
+      else{if(tab==='home')$('#main').innerHTML=`<div id="home">${homeHTML()}</div>`;else renderResults()}
+      renderNav();renderChrome();
+    },err=>{dbError='실시간 연결에 문제가 있습니다. 새로고침해 주세요.';renderChrome()});
+  }catch(e){renderChrome()}
+})();
+</script>
