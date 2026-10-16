@@ -622,7 +622,7 @@ function onData(){if(tab==='home')$('#main').innerHTML=`<div id="home">${homeHTM
 function subscribe(){
   if(unsub){try{unsub()}catch(e){}unsub=null}
   others=[];
-  if(backend&&me.gk)unsub=backend.listen(me.gk,list=>{others=list;onData()},()=>{dbError='실시간 연결에 문제가 있습니다. 새로고침해 주세요.';renderChrome()});
+  if(backend&&me.gk)unsub=backend.listen(me.gk,list=>{const mine=list.find(o=>o.id===uid);if(mine&&(mine.u||0)>(me.u||0)){me.d=mine.d||{};me.u=mine.u}others=list;onData()},()=>{dbError='실시간 연결에 문제가 있습니다. 새로고침해 주세요.';renderChrome()});
   onData();
 }
 
