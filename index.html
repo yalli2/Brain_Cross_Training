@@ -140,8 +140,7 @@ td,th{border-bottom:1px solid var(--line);padding:4px 10px;text-align:left;white
     <div class="tools">
       <span class="live" id="live"><span class="dot"></span><span id="liveTxt">연결 중</span></span>
       <input id="nick" type="text" maxlength="12" placeholder="닉네임" aria-label="닉네임">
-      <input id="grp" type="text" maxlength="12" placeholder="그룹 코드" aria-label="그룹 코드">
-      <select id="flt" aria-label="보기 범위"><option value="">전체 참가자</option></select>
+      <input id="grp" type="text" maxlength="16" placeholder="그룹 코드 입력" aria-label="그룹 코드">
       <label class="demo"><input type="checkbox" id="demoCk"> 예시 데이터</label>
     </div>
   </header>
@@ -165,10 +164,13 @@ const hash=s=>{let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=M
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
 /* ---------- 상태 ---------- */
-let db=null,uid=null,others=[],loaded=false,dbError='';
-let me={nick:store.get('bl_nick')||'',group:store.get('bl_grp')||'',d:{},u:0};
-let demoManual=null,filterGroup='',tab=location.hash.replace('#','')||'home';
-const useDemo=()=>demoManual!==null?demoManual:others.filter(o=>o.id!==uid&&o.d&&Object.keys(o.d).length).length===0;
+/* 아티팩트 밖(GitHub Pages 등)에서 그룹 공유를 쓰려면 Firebase Realtime Database 주소를 넣으세요. 예: 'https://내프로젝트-default-rtdb.firebaseio.com' */
+const CONFIG={firebaseUrl:''};
+const gkOf=s=>String(s||'').trim().toLowerCase().replace(/[^a-z0-9가-힣_-]/g,'');
+let backend=null,uid=null,others=[],dbError='',unsub=null;
+let me={nick:store.get('bl_nick')||'',group:store.get('bl_grp')||'',gk:'',d:{},u:0};me.gk=gkOf(me.group);
+let demoManual=null,tab=location.hash.replace('#','')||'home';
+const useDemo=()=>demoManual!==null?demoManual:others.filter(o=>o.id!==uid&&me.gk&&o.gk===me.gk&&o.d&&Object.keys(o.d).length).length===0;
 
 /* ---------- 교재 기반 상수 ---------- */
 const EVENTS=['상사의 갑작스러운 피드백','마감 일정 변경','회의 중 내 의견에 반박','성과 평가 결과 통보','동료의 업무 누락','조직 개편 공지'];
@@ -276,10 +278,9 @@ function demoParts(){
 
 /* ---------- 참가자 집계 ---------- */
 function parts(){
-  let L=others.filter(o=>o.id!==uid).map(o=>({id:o.id,nick:o.nick,group:o.group,d:o.d||{}}));
+  let L=others.filter(o=>o.id!==uid&&me.gk&&o.gk===me.gk).map(o=>({id:o.id,nick:o.nick,group:o.group,d:o.d||{}}));
   L.push({id:uid||'me',nick:me.nick,group:me.group,d:me.d,me:true});
   if(useDemo())L=L.concat(demoParts());
-  if(filterGroup)L=L.filter(p=>p.me||p.group===filterGroup);
   return L;
 }
 const named=p=>p.me?(p.nick||'나'):(p.nick||('참가자 '+Math.floor(hash(p.id)*9000+1000)));
@@ -548,7 +549,7 @@ function homeHTML(){
   const show=P.slice().sort((a,b)=>(b.me?1:0)-(a.me?1:0)).slice(0,18);
   const mat=show.map(p=>CH.map(c=>p.d[c.k]?1:0));
   return `<div class="chead"><div class="kicker">HR 성인 뇌훈련 프로그램</div><h2>함께 훈련하고, 함께 확인합니다</h2><p class="principle">12개 챕터를 순서대로 진행하면서 활동을 제출하면 모든 참가자의 결과가 실시간으로 차트에 모입니다.</p></div>
-  <div class="how"><div><b>1. 내 정보 입력</b>위쪽에 닉네임과 그룹 코드를 입력합니다. 같은 교육 차수는 같은 코드를 씁니다.</div><div><b>2. 챕터 활동 제출</b>왼쪽 목록에서 챕터를 고르고 3~5분 활동을 제출합니다.</div><div><b>3. 결과 함께 보기</b>제출하는 즉시 내 위치(주황)와 그룹 분포(파랑)가 차트에 나타납니다.</div></div>
+  <div class="how"><div><b>1. 그룹 코드 입력</b>위쪽에 닉네임과 그룹 코드를 입력합니다. 같은 코드를 입력한 사람끼리 결과가 실시간으로 모입니다.</div><div><b>2. 챕터 활동 제출</b>왼쪽 목록에서 챕터를 고르고 3~5분 활동을 제출합니다.</div><div><b>3. 결과 함께 보기</b>제출하는 즉시 내 위치(주황)와 그룹 분포(파랑)가 차트에 나타납니다.</div></div>
   ${stats([['참가자',P.length+'명'],['전체 제출',total+'건'],['내 진행',mine+' / 12 챕터'],['가장 많이 참여한 챕터',total?subs.slice().sort((a,b)=>b.v-a.v)[0].label.replace(/^\d+\.\s/,''):'-']])}
   <div class="grid2">${block('챕터별 제출 현황','막대가 길수록 많은 참가자가 제출했습니다.',barH(subs,{lw:140,fmt:v=>v+'명',max:Math.max(1,...subs.map(s=>s.v)),label:'챕터별 제출 인원'}),{table:{head:['챕터','제출 인원'],rows:subs.map(s=>[s.label,s.v])}})
   +block('참가자별 진행 매트릭스','채워진 칸이 제출한 챕터입니다. 최대 18명까지 표시합니다.',heat(show.map(p=>named(p)),CH.map(c=>String(c.no)),mat,{lo:0,hi:1,lw:76,cw:34,fmt:v=>v?'✓':'',label:'진행 매트릭스'}),{table:{head:['참가자',...CH.map(c=>c.no)],rows:show.map((p,i)=>[named(p),...mat[i].map(v=>v?'✓':'')])}})}</div>`;
@@ -561,15 +562,14 @@ function renderNav(){
   $('#nav').querySelectorAll('button').forEach(b=>b.onclick=()=>go(b.dataset.t));
 }
 function renderChrome(){
-  const n=activeCount();
-  $('#liveTxt').textContent=(db?'실시간 연결':'로컬 모드')+' · '+n+'명 참여';
-  const gs=[...new Set([...others.map(o=>o.group),me.group].filter(Boolean))];
-  const sel=$('#flt');const cur=filterGroup;
-  sel.innerHTML='<option value="">전체 참가자</option>'+gs.map(g=>`<option value="${esc(g)}" ${g===cur?'selected':''}>${esc(g)} 그룹만</option>`).join('');
+  const real=parts().filter(p=>!p.demo&&p.d&&Object.keys(p.d).length).length;
+  const joined=me.gk?1+others.filter(o=>o.id!==uid&&o.gk===me.gk).length:0;
+  $('#liveTxt').textContent=!backend?'로컬 모드':me.gk?`그룹 ${me.group} · ${joined}명 입장 · ${real}명 제출`:'그룹 코드를 입력하세요';
   const b=[];
-  if(!db)b.push('로그인 상태에서 열어야 다른 참가자와 결과가 공유됩니다. 지금은 내 응답만 이 화면에 표시됩니다.');
+  if(!backend)b.push('공유 서버에 연결되지 않아 내 응답만 이 화면에 표시됩니다. Claude에 로그인한 상태에서 공유 링크로 여세요.');
+  else if(!me.gk)b.push('그룹 코드를 입력하면 같은 코드를 쓰는 사람들과 결과가 실시간으로 공유됩니다. 지금은 나만 보입니다.');
   if(dbError)b.push(dbError);
-  if(useDemo())b.push('예시 데이터가 함께 표시되고 있습니다. 실제 참가자가 제출하면 자동으로 사라지며, 위의 “예시 데이터” 체크로 직접 켜고 끌 수 있습니다.');
+  if(useDemo())b.push('예시 데이터가 함께 표시되고 있습니다. 같은 그룹의 참가자가 제출하면 자동으로 사라지며, 위의 “예시 데이터” 체크로 직접 켜고 끌 수 있습니다.');
   $('#banner').innerHTML=b.map(t=>`<div class="banner">${esc(t)}</div>`).join('');
   $('#demoCk').checked=useDemo();
 }
@@ -591,25 +591,47 @@ function renderActivity(){
   f.addEventListener('submit',async e=>{e.preventDefault();const r=c.act.read(f),msg=$('#msg');
     if(r.err){msg.className='msg err';msg.textContent=r.err;return}
     me.d[c.k]=r.v;me.u=Date.now();msg.className='msg';msg.textContent='저장 중…';
-    const ok=await persist();msg.textContent=ok?'제출했습니다. 아래에서 결과를 확인하세요.':'이 화면에만 반영되었습니다.';
+    const ok=await persist();msg.textContent=ok?(me.gk?'제출했습니다. 같은 그룹 코드의 참가자와 결과가 공유됩니다.':'제출했습니다. 그룹 코드를 입력하면 다른 참가자와 결과가 공유됩니다.'):'이 화면에만 반영되었습니다.';
     $('#stat').textContent='제출 완료';$('#stat').className='badge ok';renderResults();$('#res').scrollIntoView({behavior:'smooth',block:'start'})});
   renderResults();
 }
 function go(t){tab=t;try{location.hash=t}catch(e){}renderNav();renderActivity();window.scrollTo({top:0})}
-async function persist(){
+const myDoc=()=>({nick:me.nick||'',group:me.group||'',gk:me.gk||'',u:me.u||Date.now(),d:me.d});
+async function persist(old){
   store.set('bl_nick',me.nick);store.set('bl_grp',me.group);
-  if(!db||!uid)return false;
-  try{await db.doc('r/'+uid).set({nick:me.nick||'',group:me.group||'',u:me.u||Date.now(),d:me.d});dbError='';renderChrome();return true}
+  if(!backend)return false;
+  try{await backend.save(myDoc(),old);dbError='';renderChrome();return true}
   catch(e){dbError='저장하지 못했습니다. 이 링크가 보기 전용이면 응답을 제출할 수 없습니다. 진행자에게 참여 권한을 요청하세요.';renderChrome();return false}
+}
+function claudeBackend(db,u){return {kind:'claude',uid:u,
+  async load(){const x=await db.doc('r/'+u).get();return x.exists?x.data():null},
+  async save(doc){await db.doc('r/'+u).set(doc)},
+  listen(gk,cb,err){return db.collection('r').where('gk','==',gk).onSnapshot(x=>cb(x.docs.map(d=>({id:d.id,...(d.data()||{})}))),err)}}}
+function restBackend(){
+  const base=CONFIG.firebaseUrl.replace(/\/$/,'');let id=store.get('bl_uid');
+  if(!id){id='u'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);store.set('bl_uid',id)}
+  return {kind:'rest',uid:id,
+   async load(){try{return JSON.parse(store.get('bl_doc')||'null')}catch(e){return null}},
+   async save(doc,old){store.set('bl_doc',JSON.stringify(doc));
+     if(old&&old!==doc.gk)await fetch(`${base}/r/${old}/${id}.json`,{method:'DELETE'}).catch(()=>{});
+     if(!doc.gk)return;
+     const r=await fetch(`${base}/r/${doc.gk}/${id}.json`,{method:'PUT',body:JSON.stringify(doc)});if(!r.ok)throw new Error(r.status)},
+   listen(gk,cb,err){let stop=false;const poll=async()=>{if(stop)return;try{const r=await fetch(`${base}/r/${gk}.json`);const j=(await r.json())||{};cb(Object.entries(j).map(([k,v])=>({id:k,...v})))}catch(e){if(err)err(e)}if(!stop)setTimeout(poll,3000)};poll();return()=>{stop=true}}};
+}
+function onData(){if(tab==='home')$('#main').innerHTML=`<div id="home">${homeHTML()}</div>`;else renderResults();renderNav();renderChrome()}
+function subscribe(){
+  if(unsub){try{unsub()}catch(e){}unsub=null}
+  others=[];
+  if(backend&&me.gk)unsub=backend.listen(me.gk,list=>{others=list;onData()},()=>{dbError='실시간 연결에 문제가 있습니다. 새로고침해 주세요.';renderChrome()});
+  onData();
 }
 
 /* ---------- 이벤트 ---------- */
 document.addEventListener('mousemove',e=>{const t=e.target.closest&&e.target.closest('[data-tip]'),tip=$('#tip');
   if(t){tip.textContent=t.getAttribute('data-tip');tip.style.opacity=1;const w=tip.offsetWidth;tip.style.left=Math.min(innerWidth-w-8,e.clientX+12)+'px';tip.style.top=(e.clientY+14)+'px'}else tip.style.opacity=0});
 $('#nick').value=me.nick;$('#grp').value=me.group;
-$('#nick').addEventListener('change',e=>{me.nick=e.target.value.trim();if(Object.keys(me.d).length)persist();renderNav();renderResults()});
-$('#grp').addEventListener('change',e=>{me.group=e.target.value.trim();if(Object.keys(me.d).length)persist();renderChrome()});
-$('#flt').addEventListener('change',e=>{filterGroup=e.target.value;tab==='home'?renderActivity():renderResults();renderNav()});
+$('#nick').addEventListener('change',e=>{me.nick=e.target.value.trim();if(me.gk||Object.keys(me.d).length)persist();renderNav();if(tab!=='home')renderResults()});
+$('#grp').addEventListener('change',async e=>{const old=me.gk;me.group=e.target.value.trim();me.gk=gkOf(me.group);await persist(old);subscribe()});
 $('#demoCk').addEventListener('change',e=>{demoManual=e.target.checked;tab==='home'?renderActivity():renderResults()});
 window.addEventListener('hashchange',()=>{const t=location.hash.replace('#','');if(t&&t!==tab&&(t==='home'||byK[t]))go(t)});
 
@@ -617,17 +639,12 @@ window.addEventListener('hashchange',()=>{const t=location.hash.replace('#','');
 renderNav();renderChrome();renderActivity();
 (async()=>{
   try{
-    const user=await window.claude?.use?.('user'),d=await window.claude?.use?.('db');
-    if(!d||!user){renderChrome();return}
-    db=d;uid=await user.id();
-    db.collection('r').onSnapshot(snap=>{
-      others=snap.docs.map(x=>({id:x.id,...(x.data()||{})}));
-      const mine=others.find(o=>o.id===uid);
-      if(!loaded){loaded=true;if(mine){me.d=mine.d||{};if(!me.nick)me.nick=mine.nick||'';if(!me.group)me.group=mine.group||'';$('#nick').value=me.nick;$('#grp').value=me.group}
-        renderActivity();}
-      else{if(tab==='home')$('#main').innerHTML=`<div id="home">${homeHTML()}</div>`;else renderResults()}
-      renderNav();renderChrome();
-    },err=>{dbError='실시간 연결에 문제가 있습니다. 새로고침해 주세요.';renderChrome()});
+    if(window.claude&&window.claude.use){const user=await window.claude.use('user'),d=await window.claude.use('db');if(d&&user){uid=await user.id();backend=claudeBackend(d,uid)}}
+    if(!backend&&CONFIG.firebaseUrl){backend=restBackend();uid=backend.uid}
+    if(backend){const mine=await backend.load().catch(()=>null);
+      if(mine){me.d=mine.d||{};if(!me.nick)me.nick=mine.nick||'';if(!me.group){me.group=mine.group||'';me.gk=gkOf(me.group)}$('#nick').value=me.nick;$('#grp').value=me.group}
+      renderActivity();subscribe();
+    }else renderChrome();
   }catch(e){renderChrome()}
 })();
 </script>
