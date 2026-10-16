@@ -165,7 +165,7 @@ const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},se
 
 /* ---------- 상태 ---------- */
 /* 아티팩트 밖(GitHub Pages 등)에서 그룹 공유를 쓰려면 Firebase Realtime Database 주소를 넣으세요. 예: 'https://내프로젝트-default-rtdb.firebaseio.com' */
-const CONFIG={firebaseUrl:''};
+const CONFIG={firebaseUrl:'https://BrainCrossTraining-default-rtdb.firebaseio.com'};
 const gkOf=s=>String(s||'').trim().toLowerCase().replace(/[^a-z0-9가-힣_-]/g,'');
 let backend=null,uid=null,others=[],dbError='',unsub=null;
 let me={nick:store.get('bl_nick')||'',group:store.get('bl_grp')||'',gk:'',d:{},u:0};me.gk=gkOf(me.group);
